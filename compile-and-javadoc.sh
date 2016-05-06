@@ -14,9 +14,10 @@ fi
 
 pushd "${WORKDIR}"
 
-	"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v clean install
+	"${WORKDIR}/clean.pl"
+	"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v install
 	pushd opennms-full-assembly
-		"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v clean install
+		"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v install
 	popd
 	"${WORKDIR}/bin/bamboo.pl -Pbuild.bamboo -v javadoc:aggregate
 
