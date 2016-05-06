@@ -1,5 +1,3 @@
-#!/bin/sh
-
 if [ -z "${bamboo_buildKey}" ]; then
 	echo "WARNING: \$bamboo_buildKey is unset.  Setting it to 'cli' but this is probably wrong." >&2
 	export bamboo_buildKey="cli"

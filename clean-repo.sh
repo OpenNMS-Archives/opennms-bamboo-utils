@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 WORKDIR="$1"; shift
 

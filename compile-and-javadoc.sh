@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 WORKDIR="$1"; shift
 MYDIR=`dirname $0`
