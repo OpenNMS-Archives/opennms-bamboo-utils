@@ -12,11 +12,15 @@ fi
 
 . "${MYDIR}/environment.sh"
 
-"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v clean install
-pushd opennms-full-assembly
-	"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v clean install
-popd
-"${WORKDIR}/bin/bamboo.pl -Pbuild.bamboo -v javadoc:aggregate
+pushd "${WORKDIR}"
 
-tar -cvzf javadocs.tar.gz -C "${WORKDIR}/target/site/apidocs" .
-"${MYDIR}"/generate-buildinfo.sh
+	"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v clean install
+	pushd opennms-full-assembly
+		"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v clean install
+	popd
+	"${WORKDIR}/bin/bamboo.pl -Pbuild.bamboo -v javadoc:aggregate
+
+	tar -cvzf javadocs.tar.gz -C "${WORKDIR}/target/site/apidocs" .
+	"${MYDIR}"/generate-buildinfo.sh
+
+popd
