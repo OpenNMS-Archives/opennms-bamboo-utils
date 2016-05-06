@@ -23,6 +23,6 @@ pushd "${WORKDIR}"
 	"${WORKDIR}/bin/bamboo.pl" -Pbuild.bamboo -v javadoc:aggregate
 
 	tar -cvzf javadocs.tar.gz -C "${WORKDIR}/target/site/apidocs" .
-	"${MYDIR}"/generate-buildinfo.sh
+	"${MYDIR}"/generate-buildinfo.sh "$WORKDIR"
 
 popd
