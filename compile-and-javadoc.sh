@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 WORKDIR="$1"; shift
-MYDIR=`dirname $0`
-MYDIR=`cd "$MYDIR"; pwd`
+MYDIR=$(dirname "$0")
+MYDIR=$(cd "$MYDIR"; pwd)
 
 if [ -z "$WORKDIR" ] || [ ! -d "$WORKDIR" ]; then
 	echo "usage: $0 <working-directory>" >&2
@@ -10,16 +10,17 @@ if [ -z "$WORKDIR" ] || [ ! -d "$WORKDIR" ]; then
 	exit 1
 fi
 
+# shellcheck source=/dev/null
 . "${MYDIR}/environment.sh"
 
 pushd "${WORKDIR}"
 
 	"${WORKDIR}/clean.pl"
-	"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v install
+	"${WORKDIR}/bin/bamboo.pl" "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
 	pushd opennms-full-assembly
-		"${WORKDIR}/bin/bamboo.pl" ${COMPILE_OPTIONS} ${SKIP_TESTS} -v install
+		"${WORKDIR}/bin/bamboo.pl" "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
 	popd
-	"${WORKDIR}/bin/bamboo.pl -Pbuild.bamboo -v javadoc:aggregate
+	"${WORKDIR}/bin/bamboo.pl" -Pbuild.bamboo -v javadoc:aggregate
 
 	tar -cvzf javadocs.tar.gz -C "${WORKDIR}/target/site/apidocs" .
 	"${MYDIR}"/generate-buildinfo.sh
