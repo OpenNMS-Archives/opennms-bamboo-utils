@@ -1,6 +1,7 @@
 #!/bin/bash
 
 WORKDIR="$1"; shift
+OUTPUTDIR="$1"; shift
 MYDIR=$(dirname "$0")
 MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
@@ -9,46 +10,39 @@ if [ -z "$WORKDIR" ] || [ ! -d "$WORKDIR" ]; then
 	echo "" >&2
 	exit 1
 fi
+if [ -z "$OUTPUTDIR" ] || [ ! -d "$OUTPUTDIR" ]; then
+	OUTPUTDIR="$WORKDIR"
+fi
 
 # shellcheck source=/dev/null
 . "${MYDIR}/environment.sh"
 
+# shellcheck source=/dev/null
+. "${MYDIR}/lib.sh"
+
 #### BRANCH NAME ####
-# shellcheck disable=SC2154
-if [ -z "${bamboo_OPENNMS_BRANCH_NAME}" ]; then
-	BRANCH_NAME="${bamboo_planRepository_branchName}"
-else
-	BRANCH_NAME="${bamboo_OPENNMS_BRANCH_NAME}"
-fi
-if [ -z "$BRANCH_NAME" ] || [ "$(echo "$BRANCH_NAME" | grep -c '\$')" -gt 0 ]; then
-	# branch did not get substituted, use git instead
-	echo "WARNING: \$bamboo_OPENNMS_BRANCH_NAME and \$bamboo_planRepository_branchName are not set, attempting to determine branch with \`git symbolic-ref HEAD\`." >&2
-	BRANCH_NAME="$( (cd "$WORKDIR" || exit 1; git symbolic-ref HEAD) | sed -e 's,^refs/heads/,,')"
-fi
+BRANCH_NAME="$(get_branch_name "${WORKDIR}")"
 if [ -z "$BRANCH_NAME" ]; then
 	echo "Unable to determine branch name. Bailing." >&2
 	echo "" >&2
 	exit 1
 fi
-echo "$BRANCH_NAME" >opennms-build-branch.txt
 echo "Build Branch: $BRANCH_NAME"
+echo "$BRANCH_NAME" >"${OUTPUTDIR}/opennms-build-branch.txt"
 
 #### DEPLOYMENT REPOSITORY ####
-# shellcheck disable=SC2154
-if [ -z "${bamboo_OPENNMS_BUILD_REPO}" ]; then
-	BUILD_REPO=$(cat "${WORKDIR}/.nightly")
-else
-	BUILD_REPO="${bamboo_OPENNMS_BUILD_REPO}"
-fi
-echo "$BUILD_REPO" >opennms-build-repo.txt
+BUILD_REPO="$(get_repo_name "${WORKDIR}")"
 echo "Build Repo: $BUILD_REPO"
+echo "$BUILD_REPO" >"${OUTPUTDIR}/opennms-build-repo.txt"
 
 #### GIT HASH ####
-BUILD_HASH=$(cd "$WORKDIR" || exit 1; git rev-parse HEAD)
-echo "$BUILD_HASH" >opennms-build-hash.txt
+BUILD_HASH="$(get_git_hash "$WORKDIR")"
 echo "Build Hash: $BUILD_HASH"
+echo "$BUILD_HASH" >"${OUTPUTDIR}/opennms-build-hash.txt"
 
 #### OPENNMS VERSION ####
-OPENNMS_VERSION=$(grep '<version>' "${WORKDIR}/pom.xml" | head -n 1 | sed -e 's,^.*<version>,,' -e 's,<.version>.*$,,')
-echo "$OPENNMS_VERSION" > opennms-build-version.txt
+OPENNMS_VERSION="$(get_opennms_version "${WORKDIR}")"
 echo "OpenNMS Version: $OPENNMS_VERSION"
+echo "$OPENNMS_VERSION" >"${OUTPUTDIR}/opennms-build-version.txt"
+
+echo ""
