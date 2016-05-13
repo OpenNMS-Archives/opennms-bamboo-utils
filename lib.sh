@@ -19,6 +19,14 @@ fi
 
 set -euo pipefail
 
+retry_sudo() {
+	if "$@"; then
+		return 0
+	else
+		sudo "$@"
+	fi
+}
+
 ### OpenNMS Scripts ###
 assert_opennms_repo_version() {
 	local repoversion
@@ -113,7 +121,7 @@ get_git_hash() {
 
 clean_m2_repository() {
 	if [ -d "$HOME/.m2" ]; then
-		rm -rf "$HOME"/.m2/repository*/org/opennms
+		retry_sudo rm -rf "$HOME"/.m2/repository*/org/opennms
 	fi
 }
 
@@ -122,7 +130,7 @@ clean_maven_target_directories() {
 
 	_workdir="$1"; shift
 
-	find "$_workdir" -type d -name target -print0 | xargs -0 rm -rf
+	retry_sudo find "$_workdir" -type d -name target -print0 | xargs -0 rm -rf
 }
 
 
@@ -138,5 +146,5 @@ fix_ownership() {
 		_chown_id="opennms"
 	fi
 
-	sudo chown -v -R "${_chown_id}:${_chown_id}" "${_workdir}"
+	retry_sudo chown -v -R "${_chown_id}:${_chown_id}" "${_workdir}"
 }
