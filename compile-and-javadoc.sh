@@ -1,19 +1,9 @@
 #!/bin/bash
 
-WORKDIR="$1"; shift
 MYDIR=$(dirname "$0")
 MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
-if [ -z "$WORKDIR" ] || [ ! -d "$WORKDIR" ]; then
-	echo "usage: $0 <working-directory>" >&2
-	echo "" >&2
-	exit 1
-fi
-
-# shellcheck source=/dev/null
-. "${MYDIR}/environment.sh"
-
-# shellcheck source=/dev/null
+# shellcheck source=lib.sh
 . "${MYDIR}/lib.sh"
 
 pushd "${WORKDIR}"
