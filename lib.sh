@@ -14,6 +14,9 @@ if [ -z "$MYDIR" ] || [ ! -d "$MYDIR" ]; then
 	exit 1
 fi
 
+# shellcheck source=environment.sh
+. "${MYDIR}/environment.sh"
+
 set -euo pipefail
 
 ### OpenNMS Scripts ###
