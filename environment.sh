@@ -13,3 +13,6 @@ export PATH="/usr/local/bin:$PATH"
 
 # shellcheck disable=SC2154
 export BAMBOO_BUILD_NUMBER="${bamboo_buildNumber}"
+
+# shellcheck disable=SC2154
+export BAMBOO_WORKING_DIRECTORY="${bamboo_working_directory}"

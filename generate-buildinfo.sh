@@ -6,10 +6,12 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 # shellcheck source=lib.sh
 . "${MYDIR}/lib.sh"
 
+set +u
 OUTPUTDIR="$1"; shift
 if [ -z "$OUTPUTDIR" ] || [ ! -d "$OUTPUTDIR" ]; then
 	OUTPUTDIR="$WORKDIR"
 fi
+set -u
 
 #### BRANCH NAME ####
 BRANCH_NAME="$(get_branch_name "${WORKDIR}")"
