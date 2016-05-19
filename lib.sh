@@ -146,5 +146,5 @@ fix_ownership() {
 		_chown_id="opennms"
 	fi
 
-	retry_sudo chown -v -R "${_chown_id}:${_chown_id}" "${_workdir}"
+	retry_sudo chown -R "${_chown_id}:${_chown_id}" "${_workdir}"
 }
