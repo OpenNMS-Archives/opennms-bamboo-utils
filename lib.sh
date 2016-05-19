@@ -62,11 +62,11 @@ stop_firefox() {
 	retry_sudo killall firefox || :
 }
 
-stop_surefire() {
+stop_compiles() {
 	set +eo pipefail
-	ps auxwww | grep -i -E '(failsafe|surefire)' | awk '{ print $2 }' | xargs kill || :
+	ps auxwww | grep -i -E '(failsafe|surefire|bin/java .*install$)' | grep -v ' grep ' | awk '{ print $2 }' | xargs kill || :
 	sleep 5
-	ps auxwww | grep -i -E '(failsafe|surefire)' | awk '{ print $2 }' | xargs kill -9 || :
+	ps auxwww | grep -i -E '(failsafe|surefire|bin/java .*install$)' | grep -v ' grep ' | awk '{ print $2 }' | xargs kill -9 || :
 	set -eo pipefail
 }
 

@@ -10,5 +10,5 @@ clean_m2_repository
 clean_maven_target_directories "${WORKDIR}"
 stop_opennms
 stop_firefox
-stop_surefire
+stop_compiles
 fix_ownership "${WORKDIR}"

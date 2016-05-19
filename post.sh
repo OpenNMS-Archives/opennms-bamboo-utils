@@ -9,4 +9,4 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 fix_ownership "${WORKDIR}"
 stop_opennms
 stop_firefox
-stop_surefire
+stop_compiles
