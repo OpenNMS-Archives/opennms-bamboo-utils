@@ -59,14 +59,15 @@ stop_opennms() {
 }
 
 stop_firefox() {
-	retry_sudo killall firefox || :
+	retry_sudo killall firefox >/dev/null 2>&1 || :
 }
 
 stop_compiles() {
 	set +eo pipefail
-	ps auxwww | grep -i -E '(failsafe|surefire|bin/java .*install$)' | grep -v ' grep ' | awk '{ print $2 }' | xargs kill || :
+	KILLME=`ps auxwww | grep -i -E '(failsafe|surefire|bin/java .*install$)' | grep -v ' grep ' | awk '{ print $2 }'`
+	kill $KILLME >/dev/null 2>&1 || :
 	sleep 5
-	ps auxwww | grep -i -E '(failsafe|surefire|bin/java .*install$)' | grep -v ' grep ' | awk '{ print $2 }' | xargs kill -9 || :
+	kill -9 $KILLME >/dev/null 2>&1 || :
 	set -eo pipefail
 }
 
