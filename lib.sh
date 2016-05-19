@@ -47,12 +47,12 @@ stop_opennms() {
 	_opennms="/opt/opennms/bin/opennms"
 
 	if [ -e "${_systemctl}" ] && [ -x "${_systemctl}" ]; then
-		"${_systemctl}" stop opennms || :
+		retry_sudo "${_systemctl}" stop opennms || :
 	fi
 	if [ -e "${_opennms}" ] && [ -x "${_opennms}" ]; then
-		"${_opennms}" stop || :
+		retry_sudo "${_opennms}" stop || :
 		sleep 5
-		"${_opennms}" kill || :
+		retry_sudo "${_opennms}" kill || :
 	fi
 }
 
