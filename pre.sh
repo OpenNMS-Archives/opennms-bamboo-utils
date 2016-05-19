@@ -6,5 +6,7 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 # shellcheck source=lib.sh
 . "${MYDIR}/lib.sh"
 
-"${MYDIR}/clean-repo.sh" "${WORKDIR}"
-"${MYDIR}/fix-ownership.sh" "${WORKDIR}"
+clean_m2_repository
+clean_maven_target_directories "${WORKDIR}"
+stop_opennms
+fix_ownership "${WORKDIR}"
