@@ -9,4 +9,6 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 clean_m2_repository
 clean_maven_target_directories "${WORKDIR}"
 stop_opennms
+stop_firefox
+stop_surefire
 fix_ownership "${WORKDIR}"

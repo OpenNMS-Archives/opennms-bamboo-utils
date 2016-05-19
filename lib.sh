@@ -20,11 +20,13 @@ fi
 set -euo pipefail
 
 retry_sudo() {
+	set +e
 	if "$@"; then
 		return 0
 	else
 		sudo "$@"
 	fi
+	set -e
 }
 
 ### OpenNMS Scripts ###
@@ -54,6 +56,18 @@ stop_opennms() {
 		sleep 5
 		retry_sudo "${_opennms}" kill || :
 	fi
+}
+
+stop_firefox() {
+	retry_sudo killall firefox || :
+}
+
+stop_surefire() {
+	set +eo pipefail
+	ps auxwww | grep -i -E '(failsafe|surefire)' | awk '{ print $2 }' | xargs kill || :
+	sleep 5
+	ps auxwww | grep -i -E '(failsafe|surefire)' | awk '{ print $2 }' | xargs kill -9 || :
+	set -eo pipefail
 }
 
 
