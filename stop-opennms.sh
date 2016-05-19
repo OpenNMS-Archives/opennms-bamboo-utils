@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### DEPRECATED ###
+
 MYDIR=$(dirname "$0")
 MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
