@@ -6,7 +6,8 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 # shellcheck source=lib.sh
 . "${MYDIR}/lib.sh"
 
-fix_ownership "${WORKDIR}"
+stop_compiles
 stop_opennms
 stop_firefox
-stop_compiles
+reset_postgresql
+fix_ownership "${WORKDIR}"
