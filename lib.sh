@@ -104,7 +104,9 @@ reset_postgresql() {
 
 	retry_sudo service postgresql restart || :
 
-	psql -U opennms -c 'SELECT datname FROM pg_database' -Pformat=unaligned -Pfooter=off | grep -E '^opennms_test' >/tmp/$$.databases
+	set +euo pipefail
+	psql -U opennms -c 'SELECT datname FROM pg_database' -Pformat=unaligned -Pfooter=off 2>/dev/null | grep -E '^opennms_test' >/tmp/$$.databases
+	set -euo pipefail
 
 	cat /tmp/$$.databases | while read DB; do
 		echo "  - removing $DB"
