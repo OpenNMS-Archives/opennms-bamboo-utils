@@ -19,6 +19,7 @@ fi
 
 set -euo pipefail
 
+### SYSTEM SCRIPTS ###
 retry_sudo() {
 	set +e
 	if echo "" | "$@" >/tmp/$$.output 2>&1; then
@@ -30,6 +31,25 @@ retry_sudo() {
 		echo "" | sudo "$@"
 	fi
 	set -e
+}
+
+increase_limits() {
+	local limit
+
+	limit=$(ulimit -n)
+	if [ "$limit" -lt 4096 ]; then
+		ulimit -n 4096
+	fi
+
+	limit=$(cat /proc/sys/kernel/threads-max)
+	if [ "$limit" -lt 200000 ]; then
+		sudo bash -c 'echo 200000 > /proc/sys/kernel/threads-max'
+	fi
+
+	limit=$(cat /proc/sys/vm/max_map_count)
+	if [ "$limit" -lt 100000 ]; then
+		sudo bash -c 'echo 128000 > /proc/sys/vm/max_map_count'
+	fi
 }
 
 ### OpenNMS Scripts ###
@@ -69,10 +89,12 @@ stop_firefox() {
 
 stop_compiles() {
 	set +eo pipefail
-	KILLME=`ps auxwww | grep -i -E '(failsafe|surefire|git-upload-pack|bin/java .*install$)' | grep -v ' grep ' | awk '{ print $2 }'`
+	KILLME=$(pgrep -f '(failsafe|surefire|git-upload-pack|bin/java .*install$)')
 	if [ -n "$KILLME" ]; then
+		# shellcheck disable=SC2086
 		retry_sudo kill $KILLME || :
 		sleep 5
+		# shellcheck disable=SC2086
 		retry_sudo kill -9 $KILLME || :
 	fi
 	set -eo pipefail
