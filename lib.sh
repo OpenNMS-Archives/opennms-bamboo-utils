@@ -52,7 +52,6 @@ increase_limits() {
 	fi
 }
 
-### OpenNMS Scripts ###
 assert_opennms_repo_version() {
 	local repoversion
 
@@ -98,6 +97,21 @@ stop_compiles() {
 		retry_sudo kill -9 $KILLME || :
 	fi
 	set -eo pipefail
+}
+
+reset_postgresql() {
+	echo "- cleaning up postgresql:"
+
+	retry_sudo service postgresql restart || :
+
+	psql -U opennms -c 'SELECT datname FROM pg_database' -Pformat=unaligned -Pfooter=off | grep -E '^opennms_test' >/tmp/$$.databases
+
+	cat /tmp/$$.databases | while read DB; do
+		echo "  - removing $DB"
+		dropdb -U opennms "$DB"
+	done
+	echo "- finished cleaning up postgresql"
+	rm /tmp/$$.databases
 }
 
 

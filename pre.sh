@@ -9,7 +9,8 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 increase_limits
 clean_m2_repository
 clean_maven_target_directories "${WORKDIR}"
+stop_compiles
 stop_opennms
 stop_firefox
-stop_compiles
+reset_postgresql
 fix_ownership "${WORKDIR}"
