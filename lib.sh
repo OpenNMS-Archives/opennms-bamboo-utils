@@ -21,9 +21,12 @@ set -euo pipefail
 
 retry_sudo() {
 	set +e
-	if "$@"; then
+	if "$@" >/tmp/$$.output 2>&1; then
+		cat /tmp/$$.output
+		rm /tmp/$$.output
 		return 0
 	else
+		rm /tmp/$$.output
 		sudo "$@"
 	fi
 	set -e
@@ -55,6 +58,8 @@ stop_opennms() {
 		retry_sudo "${_opennms}" stop || :
 		sleep 5
 		retry_sudo "${_opennms}" kill || :
+	else
+		echo "WARNING: ${_opennms} does not exist"
 	fi
 }
 
