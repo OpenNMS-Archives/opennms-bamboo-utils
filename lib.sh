@@ -70,9 +70,11 @@ stop_firefox() {
 stop_compiles() {
 	set +eo pipefail
 	KILLME=`ps auxwww | grep -i -E '(failsafe|surefire|bin/java .*install$)' | grep -v ' grep ' | awk '{ print $2 }'`
-	kill $KILLME >/dev/null 2>&1 || :
-	sleep 5
-	kill -9 $KILLME >/dev/null 2>&1 || :
+	if [ -n "$KILLME" ]; then
+		retry_sudo kill $KILLME || :
+		sleep 5
+		retry_sudo kill -9 $KILLME || :
+	fi
 	set -eo pipefail
 }
 
