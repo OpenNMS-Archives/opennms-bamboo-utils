@@ -21,13 +21,13 @@ set -euo pipefail
 
 retry_sudo() {
 	set +e
-	if "$@" >/tmp/$$.output 2>&1; then
+	if echo "" | "$@" >/tmp/$$.output 2>&1; then
 		cat /tmp/$$.output
 		rm /tmp/$$.output
 		return 0
 	else
 		rm /tmp/$$.output
-		sudo "$@"
+		echo "" | sudo "$@"
 	fi
 	set -e
 }
