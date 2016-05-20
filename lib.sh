@@ -69,7 +69,7 @@ stop_firefox() {
 
 stop_compiles() {
 	set +eo pipefail
-	KILLME=`ps auxwww | grep -i -E '(failsafe|surefire|bin/java .*install$)' | grep -v ' grep ' | awk '{ print $2 }'`
+	KILLME=`ps auxwww | grep -i -E '(failsafe|surefire|git-upload-pack|bin/java .*install$)' | grep -v ' grep ' | awk '{ print $2 }'`
 	if [ -n "$KILLME" ]; then
 		retry_sudo kill $KILLME || :
 		sleep 5
