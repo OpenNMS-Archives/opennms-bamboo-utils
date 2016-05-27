@@ -119,9 +119,9 @@ reset_postgresql() {
 reset_docker() {
 	echo "- killing and removing existing Docker containers..."
 	set +eo pipefail
-	(docker kill $(docker ps --no-trunc -a -q)) | :
-	(docker rm $(docker ps --no-trunc -a -q)) || :
-	(docker images --no-trunc | grep none | awk '{ print $3 }' | xargs docker rmi) || :
+	(docker kill $(docker ps --no-trunc -a -q)) 2>/dev/null | :
+	(docker rm $(docker ps --no-trunc -a -q)) 2>/dev/null || :
+	(docker images --no-trunc | grep none | awk '{ print $3 }' | xargs docker rmi) 2>/dev/null || :
 	set -eo pipefail
 }
 
