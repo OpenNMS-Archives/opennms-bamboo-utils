@@ -108,10 +108,10 @@ reset_postgresql() {
 	psql -U opennms -c 'SELECT datname FROM pg_database' -Pformat=unaligned -Pfooter=off 2>/dev/null | grep -E '^opennms_test' >/tmp/$$.databases
 	set -euo pipefail
 
-	cat /tmp/$$.databases | while read DB; do
+	(while read -r DB; do
 		echo "  - removing $DB"
 		dropdb -U opennms "$DB"
-	done
+	done) < /tmp/$$.databases
 	echo "- finished cleaning up postgresql"
 	rm /tmp/$$.databases
 }
@@ -119,7 +119,9 @@ reset_postgresql() {
 reset_docker() {
 	echo "- killing and removing existing Docker containers..."
 	set +eo pipefail
+	# shellcheck disable=SC2046
 	(docker kill $(docker ps --no-trunc -a -q)) 2>/dev/null | :
+	# shellcheck disable=SC2046
 	(docker rm $(docker ps --no-trunc -a -q)) 2>/dev/null || :
 	(docker images --no-trunc | grep none | awk '{ print $3 }' | xargs docker rmi) 2>/dev/null || :
 	set -eo pipefail
