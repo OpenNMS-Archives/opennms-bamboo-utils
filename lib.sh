@@ -116,6 +116,13 @@ reset_postgresql() {
 	rm /tmp/$$.databases
 }
 
+reset_docker() {
+	echo "- killing and removing existing Docker containers..."
+	(docker kill $(docker ps --no-trunc -a -q)) | :
+	(docker rm $(docker ps --no-trunc -a -q)) || :
+	(docker images --no-trunc | grep none | awk '{ print $3 }' | xargs docker rmi) || :
+}
+
 
 ### GIT and Maven ###
 get_branch_name() {
