@@ -9,7 +9,6 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 set +eo pipefail
 
 export PATH="/opt/firefox:/usr/local/bin:$PATH"
-export PERL5LIB="/usr/local/share/perl5:$PERL5LIB"
 export PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
 
 RPM_VERSION="$(rpm -q --queryformat='%{version}\n' -p rpms/opennms-core-*.rpm)"
