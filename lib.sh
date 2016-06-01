@@ -67,7 +67,7 @@ stop_opennms() {
 	local _systemctl
 	local _opennms
 
-	_systemctl="$(which systemctl)"
+	_systemctl="$(which systemctl 2>/dev/null || :)"
 	_opennms="/opt/opennms/bin/opennms"
 
 	if [ -e "${_systemctl}" ] && [ -x "${_systemctl}" ]; then
