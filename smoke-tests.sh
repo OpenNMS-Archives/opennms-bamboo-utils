@@ -11,6 +11,10 @@ set +eo pipefail
 export PATH="/opt/firefox:/usr/local/bin:$PATH"
 export PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
 
+if [ -x "opennms-source/bin/javahome.pl" ]; then
+	export JAVA_HOME="$(opennms-source/bin/javahome.pl)"
+fi
+
 RPM_VERSION="$(rpm -q --queryformat='%{version}\n' -p rpms/opennms-core-*.rpm)"
 echo "RPM Version: $RPM_VERSION"
 ls -1 "${WORKDIR}"/rpms/*
