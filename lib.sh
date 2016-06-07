@@ -120,10 +120,13 @@ reset_docker() {
 	echo "- killing and removing existing Docker containers..."
 	set +eo pipefail
 	# shellcheck disable=SC2046
+	# stop all running docker containers
 	(docker kill $(docker ps --no-trunc -a -q)) 2>/dev/null | :
 	# shellcheck disable=SC2046
+	# remove all docker containers
 	(docker rm $(docker ps --no-trunc -a -q)) 2>/dev/null || :
-	(docker images --no-trunc | grep none | awk '{ print $3 }' | xargs docker rmi) 2>/dev/null || :
+	# remove any dangling images
+	(docker images -q --filter "dangling=true" | xargs -n1 -r docker rmi) 2>/dev/null || :
 	set -eo pipefail
 }
 
