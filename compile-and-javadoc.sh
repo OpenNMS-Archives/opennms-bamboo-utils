@@ -9,7 +9,7 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 pushd "${WORKDIR}"
 
 	"${WORKDIR}/clean.pl"
-	"${WORKDIR}/bin/bamboo.pl" "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -T1C -v install
+	"${WORKDIR}/bin/bamboo.pl" "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -T0.5C -v install
 	pushd opennms-full-assembly
 		"${WORKDIR}/bin/bamboo.pl" "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
 	popd
