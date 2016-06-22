@@ -40,7 +40,7 @@ case "$SMOKE_TEST_API_VERSION" in
 		cd opennms-source
 			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install
 			cd smoke-test
-				xvfb-run --wait=20 --server-args="-screen 0 1920x1080x24" --server-num=80 --auto-servernum --listen-tcp ../compile.pl -Dsurefire.rerunFailingTestsCount=5 -Dfailsafe.rerunFailingTestsCount=5 -Dorg.opennms.smoketest.logLevel=INFO -Dorg.opennms.smoketest.docker=true -Dsmoke=true -t
+				xvfb-run --wait=20 --server-args="-screen 0 1920x1080x24" --server-num=80 --auto-servernum --listen-tcp ../compile.pl -Dsurefire.rerunFailingTestsCount=5 -Dfailsafe.rerunFailingTestsCount=5 -Dorg.opennms.smoketest.logLevel=INFO -Dtest.fork.count=2 -Dorg.opennms.smoketest.docker=true -Dsmoke=true -t
 			cd ..
 		cd ..
 		;;
