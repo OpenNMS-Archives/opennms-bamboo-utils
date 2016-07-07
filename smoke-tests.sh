@@ -30,7 +30,7 @@ case "$SMOKE_TEST_API_VERSION" in
 		echo "* Found Dockerized smoke tests"
 
 		mkdir -p "${DOCKERDIR}/opennms/rpms" "${DOCKERDIR}/minion/rpms"
-		rm -rf "${DOCKERDIR}"/rpms/*.rpm
+		rm -rf "${DOCKERDIR}"/opennms/rpms/*.rpm "${DOCKERDIR}"/minion/rpms/*.rpm
 		mv "${WORKDIR}"/rpms/*.rpm "${DOCKERDIR}/opennms/rpms/"
 		mv "${DOCKERDIR}"/opennms/rpms/*minion* "${DOCKERDIR}"/minion/rpms/ || :
 		cd "${DOCKERDIR}" || exit 1
