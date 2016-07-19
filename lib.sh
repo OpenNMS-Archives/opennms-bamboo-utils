@@ -125,10 +125,10 @@ reset_docker() {
 	# shellcheck disable=SC2046
 	# remove all docker containers
 	(docker rm $(docker ps --no-trunc -a -q)) 2>/dev/null || :
-	# remove the existing smoke test images so we can be sure they're recreated
-	(docker images | grep -E '^stests/' | xargs -n1 -r docker rmi) 2>/dev/null || :
 	# remove any dangling images
 	(docker images -q --filter "dangling=true" | xargs -n1 -r docker rmi) 2>/dev/null || :
+	# remove the existing smoke test images so we can be sure they're recreated
+	(docker images | grep -E '^stests/(minion|opennms)' | xargs -n1 -r docker rmi) 2>/dev/null || :
 	set -eo pipefail
 }
 
