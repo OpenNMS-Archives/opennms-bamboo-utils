@@ -16,3 +16,7 @@ export BAMBOO_BUILD_NUMBER="${bamboo_buildNumber}"
 
 # shellcheck disable=SC2154
 export BAMBOO_WORKING_DIRECTORY="${bamboo_working_directory}"
+
+if [ -z "$MAVEN_OPTS" ]; then
+	MAVEN_OPTS="-Xmx2048m -XX:ReservedCodeCacheSize=512m"
+fi
