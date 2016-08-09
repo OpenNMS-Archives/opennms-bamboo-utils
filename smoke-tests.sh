@@ -16,7 +16,13 @@ if [ -x "opennms-source/bin/javahome.pl" ]; then
 fi
 export JAVA_HOME
 
-RPM_VERSION="$(rpm -q --queryformat='%{version}\n' -p rpms/opennms-core-*.rpm)"
+CORE_RPM="$(find rpms -name opennms-core-\*.rpm -o -name meridian-core-\*.rpm)"
+if [ "$(echo "$CORE_RPM" | wc -w)" -ne 1 ]; then
+	echo "* ERROR: found more than one core RPM: $CORE_RPM"
+	exit 1
+fi
+
+RPM_VERSION="$(rpm -q --queryformat='%{version}\n' -p "${CORE_RPM}")"
 echo "RPM Version: $RPM_VERSION"
 ls -1 "${WORKDIR}"/rpms/*
 
