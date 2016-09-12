@@ -129,6 +129,8 @@ reset_docker() {
 	(docker images -q --filter "dangling=true" | xargs -n1 -r docker rmi) 2>/dev/null || :
 	# remove the existing smoke test images so we can be sure they're recreated
 	(docker images | grep -E '^stests/(minion|opennms)' | xargs -n1 -r docker rmi) 2>/dev/null || :
+	# remove any dangling mounted volumes
+	(docker volume ls -qf dangling=true | xargs -r docker volume rm -q) 2>/dev/null || :
 	set -eo pipefail
 }
 
