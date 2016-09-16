@@ -10,8 +10,9 @@ increase_limits
 clean_m2_repository
 clean_maven_target_directories "${WORKDIR}"
 stop_compiles
-stop_opennms
 stop_firefox
+stop_opennms
+clean_opennms
 reset_postgresql
 reset_docker
 fix_ownership "${WORKDIR}"

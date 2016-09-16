@@ -8,6 +8,7 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
 stop_compiles
 stop_opennms
+clean_opennms
 stop_firefox
 reset_postgresql
 reset_docker

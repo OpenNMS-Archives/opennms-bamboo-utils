@@ -82,6 +82,14 @@ stop_opennms() {
 	fi
 }
 
+clean_opennms() {
+	retry_sudo yum -y remove \
+		opennms-core opennms-source opennms-remote-poller opennms-minion-core opennms-minion-features opennms-minion-container \
+		meridian-core meridian-source meridian-remote-poller meridian-minion-core meridian-minion-features meridian-minion-container \
+		|| :
+	retry_sudo rm -rf /opt/opennms /opt/minion /usr/lib/opennms, /usr/share/opennms, /var/lib/opennms, /var/log/opennms, /var/opennms
+}
+
 stop_firefox() {
 	retry_sudo killall firefox >/dev/null 2>&1 || :
 }
@@ -130,7 +138,7 @@ reset_docker() {
 	# remove the existing smoke test images so we can be sure they're recreated
 	(docker images | grep -E '^stests/(minion|opennms)' | xargs -n1 -r docker rmi) 2>/dev/null || :
 	# remove any dangling mounted volumes
-	(docker volume ls -qf dangling=true | xargs -r docker volume rm -q) 2>/dev/null || :
+	(docker volume ls -qf dangling=true | xargs -n1 -r docker volume rm) 2>/dev/null || :
 	set -eo pipefail
 }
 
