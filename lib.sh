@@ -134,11 +134,14 @@ reset_docker() {
 	# remove all docker containers
 	(docker rm $(docker ps --no-trunc -a -q)) 2>/dev/null || :
 	# remove any dangling images
-	(docker images -q --filter "dangling=true" | xargs -n1 -r docker rmi) 2>/dev/null || :
-	# remove the existing smoke test images so we can be sure they're recreated
-	(docker images | grep -E '^stests/(minion|opennms)' | xargs -n1 -r docker rmi) 2>/dev/null || :
+	(docker images -q --no-trunc --filter 'dangling=true' | xargs -n1 -r docker rmi) 2>/dev/null || :
+
+	for IMAGE in stests/opennms stests/minion stests/tomcat stests/snmpd; do
+		(docker images -q --no-trunc -a "${IMAGE}" | xargs -n1 -r docker rmi) 2>/dev/null || :
+	done
+
 	# remove any dangling mounted volumes
-	(docker volume ls -qf dangling=true | xargs -n1 -r docker volume rm) 2>/dev/null || :
+	(docker volume ls -q --filter 'dangling=true' | xargs -n1 -r docker volume rm) 2>/dev/null || :
 	set -eo pipefail
 }
 
