@@ -129,7 +129,7 @@ reset_docker() {
 	set +eo pipefail
 	# shellcheck disable=SC2046
 	# stop all running docker containers
-	(docker kill $(docker ps --no-trunc -a -q)) 2>/dev/null | :
+	(docker kill $(docker ps --no-trunc -a -q)) 2>/dev/null || :
 	# shellcheck disable=SC2046
 	# remove all docker containers
 	(docker rm $(docker ps --no-trunc -a -q)) 2>/dev/null || :
