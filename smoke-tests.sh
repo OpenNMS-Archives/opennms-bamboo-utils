@@ -40,13 +40,13 @@ case "$SMOKE_TEST_API_VERSION" in
 		mv "${WORKDIR}"/rpms/*.rpm "${DOCKERDIR}/opennms/rpms/"
 		mv "${DOCKERDIR}"/opennms/rpms/*-minion-* "${DOCKERDIR}"/minion/rpms/ || :
 		cd "${DOCKERDIR}" || exit 1
-			./build-docker-images.sh
+			./build-docker-images.sh || exit 1
 		cd "${WORKDIR}" || exit 1
 
 		cd opennms-source
-			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install
+			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || exit 1
 			cd smoke-test
-				xvfb-run --wait=20 --server-args="-screen 0 1920x1080x24" --server-num=80 --auto-servernum --listen-tcp ../compile.pl -Dsurefire.rerunFailingTestsCount=5 -Dfailsafe.rerunFailingTestsCount=5 -Dorg.opennms.smoketest.logLevel=INFO -Dtest.fork.count=2 -Dorg.opennms.smoketest.docker=true -Dsmoke=true -t
+				xvfb-run --wait=20 --server-args="-screen 0 1920x1080x24" --server-num=80 --auto-servernum --listen-tcp ../compile.pl -Dsurefire.rerunFailingTestsCount=5 -Dfailsafe.rerunFailingTestsCount=5 -Dorg.opennms.smoketest.logLevel=INFO -Dtest.fork.count=2 -Dorg.opennms.smoketest.docker=true -Dsmoke=true -t || exit 1
 			cd ..
 		cd ..
 		;;
@@ -57,7 +57,7 @@ case "$SMOKE_TEST_API_VERSION" in
 			SHUNT_RPM="$(find debian-shunt -name debian-shunt-\*.noarch.rpm | sort -u | tail -n 1)"
 			sudo rpm -Uvh "$SHUNT_RPM" || :
 
-			sudo ./do-smoke-test.pl "${WORKDIR}"/opennms-source "${WORKDIR}"/rpms
+			sudo ./do-smoke-test.pl "${WORKDIR}"/opennms-source "${WORKDIR}"/rpms || exit 1
 		cd ..
 		;;
 esac
