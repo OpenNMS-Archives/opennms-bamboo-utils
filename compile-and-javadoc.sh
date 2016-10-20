@@ -13,4 +13,6 @@ pushd "${WORKDIR}"
 	"${WORKDIR}/bin/bamboo.pl" -Prun-expensive-tasks -v javadoc:aggregate
 	tar -cvzf javadocs.tar.gz -C "${WORKDIR}/target/site/apidocs" .
 
+	"${MYDIR}"/generate-buildinfo.sh "${WORKDIR}" "${BAMBOO_WORKING_DIRECTORY}"
+
 popd
