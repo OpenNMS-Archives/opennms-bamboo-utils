@@ -83,10 +83,19 @@ stop_opennms() {
 }
 
 clean_opennms() {
-	retry_sudo yum -y remove \
-		opennms-core opennms-source opennms-remote-poller opennms-minion-core opennms-minion-features opennms-minion-container \
-		meridian-core meridian-source meridian-remote-poller meridian-minion-core meridian-minion-features meridian-minion-container \
-		|| :
+	for PKG_SUFFIX in \
+		upgrade \
+		docs \
+		core \
+		source \
+		remote-poller \
+		minion-core \
+		minion-features \
+		minion-container
+	do
+		retry_sudo yum -y remove "opennms-${PKG_SUFFIX}" || :
+		retry_sudo yum -y remove "meridian-${PKG_SUFFIX}" || :
+	done
 	retry_sudo rm -rf /opt/opennms /opt/minion /usr/lib/opennms, /usr/share/opennms, /var/lib/opennms, /var/log/opennms, /var/opennms
 }
 
