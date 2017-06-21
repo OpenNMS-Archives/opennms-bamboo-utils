@@ -87,6 +87,7 @@ clean_opennms() {
 		upgrade \
 		docs \
 		core \
+		plugin-ticketer-centric \
 		source \
 		remote-poller \
 		minion-core \
