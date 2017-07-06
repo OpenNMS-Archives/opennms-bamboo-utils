@@ -8,7 +8,7 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
 pushd "${WORKDIR}"
 
-	"${MYDIR}/compile-only.sh" "$@"
+	"${MYDIR}/compile-only.sh" "${WORKDIR}"
 
 	pushd opennms-full-assembly
 		"${WORKDIR}/bin/bamboo.pl" -Prun-expensive-tasks "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install

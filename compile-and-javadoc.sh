@@ -8,7 +8,7 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
 pushd "${WORKDIR}"
 
-	"${MYDIR}/compile.sh" "$@"
+	"${MYDIR}/compile.sh" "${WORKDIR}"
 
 	"${WORKDIR}/bin/bamboo.pl" -Prun-expensive-tasks "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v javadoc:aggregate
 	tar -cvzf javadocs.tar.gz -C "${WORKDIR}/target/site/apidocs" .
