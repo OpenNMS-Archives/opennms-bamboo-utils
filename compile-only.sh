@@ -21,7 +21,7 @@ pushd "${WORKDIR}"
 	"${WORKDIR}/bin/bamboo.pl" -Prun-expensive-tasks "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
 
 	# ...and then install these sub-POMs manually
-	for DIR in opennms-tools opennms-assemblies opennms-full-assembly; do
+	for DIR in opennms-tools opennms-assemblies; do
 		pushd "$DIR"
 			"${WORKDIR}/bin/bamboo.pl" -N "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
 		popd
