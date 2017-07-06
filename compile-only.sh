@@ -9,14 +9,21 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 pushd "${WORKDIR}"
 
 	"${WORKDIR}/clean.pl"
-	"${WORKDIR}/bin/bamboo.pl" -Prun-expensive-tasks "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
 
+	# first, install just the top-level POM so it can be inherited
+	"${WORKDIR}/bin/bamboo.pl" -N "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
+
+	# then, make sure checkstyle is in the local ~/.m2/repository
 	if [ -d "checkstyle" ]; then
 		pushd checkstyle
 			"${WORKDIR}/bin/bamboo.pl" "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
 		popd
 	fi
 
+	# finally, do the main build
+	"${WORKDIR}/bin/bamboo.pl" -Prun-expensive-tasks "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
+
+	# ...and then install these sub-POMs manually
 	for DIR in opennms-tools opennms-assembly opennms-full-assembly; do
 		pushd "$DIR"
 			"${WORKDIR}/bin/bamboo.pl" -N "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
