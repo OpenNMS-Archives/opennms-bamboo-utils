@@ -22,7 +22,7 @@ if [ "$(echo "$CORE_RPM" | wc -w)" -ne 1 ]; then
 	exit 1
 fi
 
-RPM_VERSION="$(rpm -q --queryformat='%{version}\n' -p "${CORE_RPM}")"
+RPM_VERSION="$(rpm -q --queryformat='%{version}-%{release}\n' -p "${CORE_RPM}")"
 echo "RPM Version: $RPM_VERSION"
 ls -1 "${WORKDIR}"/rpms/*
 
