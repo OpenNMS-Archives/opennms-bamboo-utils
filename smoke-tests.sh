@@ -28,7 +28,7 @@ ls -1 "${WORKDIR}"/rpms/*
 
 SMOKE_TEST_API_VERSION="$(grep -C1 org.opennms.smoke.test-api "${WORKDIR}/opennms-source/smoke-test/pom.xml"  | grep '<version>' | sed -e 's,.*<version>,,' -e 's,</version>,,' -e 's,-SNAPSHOT$,,')"
 case "$SMOKE_TEST_API_VERSION" in
-	"2")
+	"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9")
 		DOCKERDIR="${WORKDIR}/opennms-system-test-api/docker"
 
 		# this branch is using the new-style dockerized smoke tests
