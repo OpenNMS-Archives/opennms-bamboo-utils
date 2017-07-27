@@ -244,10 +244,8 @@ fix_ownership() {
 
 	_workdir="$1"; shift
 	if [ -n "$1" ]; then
-		_chown_user="$(find "$1" -ls | awk '{ print $5 }')"
-		_chown_user="$(id -u "${_chown_user}" 2>/dev/null)"
-		_chown_group="$(find "$1" -ls | awk '{ print $6 }')"
-		_chown_group="$(id -u "${_chown_group}" 2>/dev/null)"
+		_chown_user="$(ls -n "$1" | awk '{ print $3 }')"
+		_chown_group="$(ls -n "$1" | awk '{ print $4 }')"
 	else
 		_chown_user="$(id -u bamboo 2>/dev/null)"
 		_chown_group="$(id -g bamboo 2>/dev/null)"
