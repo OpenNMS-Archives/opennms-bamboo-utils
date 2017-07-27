@@ -234,16 +234,29 @@ clean_maven_target_directories() {
 
 
 ### Filesystem/Path Admin ###
+# usage: fix_ownership $WORKDIR [$file_to_match]
+# If file_to_match is not passed, attempts to use the bamboo uid/gid.
+# If bamboo uid/gid can't be determined, falls back to the 'opennms' user/group.
 fix_ownership() {
 	local _workdir
-	local _chown_id
+	local _chown_user
+	local _chown_group
 
 	_workdir="$1"; shift
-	_chown_id="$(id -u bamboo 2>/dev/null)"
-
-	if [ -z "${_chown_id}" ] || [ "${_chown_id}" -eq 0 ]; then
-		_chown_id="opennms"
+	if [ -n "$1" ]; then
+		_chown_user="$(find "$1" -ls | awk '{ print $5 }')"
+		_chown_group="$(find "$1" -ls | awk '{ print $6 }')"
+	else
+		_chown_user="$(id -u bamboo 2>/dev/null)"
+		_chown_group="$(id -g bamboo 2>/dev/null)"
 	fi
 
-	retry_sudo chown -R "${_chown_id}:${_chown_id}" "${_workdir}"
+	if [ -z "${_chown_user}" ] || [ "${_chown_user}" -eq 0 ]; then
+		_chown_user="opennms"
+	fi
+	if [ -z "${_chown_group}" ] || [ "${_chown_group}" -eq 0 ]; then
+		_chown_group="opennms"
+	fi
+
+	retry_sudo chown -R "${_chown_user}:${_chown_group}" "${_workdir}"
 }
