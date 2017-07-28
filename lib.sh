@@ -243,13 +243,15 @@ fix_ownership() {
 	local _chown_group
 
 	_workdir="$1"; shift
-	if [[ "${1:?}" ]]; then
+	set +u
+	if [ -n "$1" ]; then
 		_chown_user="$(ls -n "$1" | awk '{ print $3 }')"
 		_chown_group="$(ls -n "$1" | awk '{ print $4 }')"
 	else
 		_chown_user="$(id -u bamboo 2>/dev/null)"
 		_chown_group="$(id -g bamboo 2>/dev/null)"
 	fi
+	set -u
 
 	if [ -z "${_chown_user}" ] || [ "${_chown_user}" -eq 0 ]; then
 		_chown_user="opennms"
