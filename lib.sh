@@ -243,7 +243,7 @@ fix_ownership() {
 	local _chown_group
 
 	_workdir="$1"; shift
-	if [ -n "$1" ]; then
+	if [[ "${1:?}" ]]; then
 		_chown_user="$(ls -n "$1" | awk '{ print $3 }')"
 		_chown_group="$(ls -n "$1" | awk '{ print $4 }')"
 	else
