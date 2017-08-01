@@ -141,8 +141,20 @@ reset_docker() {
 	# stop all running docker containers
 	(docker kill $(docker ps --no-trunc -a -q)) 2>/dev/null || :
 
-	# garbage-collect old docker containers and images
-	(MINIMUM_IMAGES_TO_SAVE=1 docker run spotify/docker-gc) 2>/dev/null || :
+	if [ -e /var/run/docker.sock ]; then
+		# garbage-collect old docker containers and images
+		(MINIMUM_IMAGES_TO_SAVE=1 docker run -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc) 2>/dev/null || :
+	else
+		# shellcheck disable=SC2046
+		# remove all docker containers
+		(docker rm $(docker ps --no-trunc -a -q)) 2>/dev/null || :
+		# remove any dangling images
+		(docker images -q --no-trunc --filter 'dangling=true' | xargs -n1 -r docker rmi) 2>/dev/null || :
+
+		for IMAGE in stests/opennms stests/minion stests/tomcat stests/snmpd; do
+			(docker images -q --no-trunc -a "${IMAGE}" | xargs -n1 -r docker rmi) 2>/dev/null || :
+		done
+	fi
 
 	# remove any dangling mounted volumes
 	(docker volume ls -q --filter 'dangling=true' | xargs -n1 -r docker volume rm) 2>/dev/null || :
