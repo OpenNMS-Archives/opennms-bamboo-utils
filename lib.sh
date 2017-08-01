@@ -142,8 +142,12 @@ reset_docker() {
 	(docker kill $(docker ps --no-trunc -a -q)) 2>/dev/null || :
 
 	if [ -e /var/run/docker.sock ]; then
+		cat <<END >/tmp/docker-gc-exclude.txt
+opennms/*
+stests/*
+END
 		# garbage-collect old docker containers and images
-		(MINIMUM_IMAGES_TO_SAVE=1 docker run -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc) 2>/dev/null || :
+		(docker run -v /tmp/docker-gc-exclude.txt:/tmp/docker-gc-exclude.txt -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc env MINIMUM_IMAGES_TO_SAVE=1 EXCLUDE_FROM_GC=/tmp/docker-gc-exclude.txt /docker-gc) 2>/dev/null || :
 	else
 		# shellcheck disable=SC2046
 		# remove all docker containers
