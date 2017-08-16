@@ -242,6 +242,13 @@ clean_maven_target_directories() {
 	retry_sudo find "$_workdir" -type d -name target -print0 | xargs -0 rm -rf
 }
 
+clean_node_directories() {
+	local _workdir
+
+	_workdir="$1"; shift
+
+	retry_sudo rm -rf "${_workdir}/node_modules"
+}
 
 ### Filesystem/Path Admin ###
 # usage: fix_ownership $WORKDIR [$file_to_match]
