@@ -149,19 +149,11 @@ END
 		# garbage-collect old docker containers and images
 		(docker run -v /tmp/docker-gc-exclude.txt:/tmp/docker-gc-exclude.txt -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc env MINIMUM_IMAGES_TO_SAVE=1 EXCLUDE_FROM_GC=/tmp/docker-gc-exclude.txt /docker-gc) 2>/dev/null || :
 	else
-		# shellcheck disable=SC2046
-		# remove all docker containers
-		(docker rm $(docker ps --no-trunc -a -q)) 2>/dev/null || :
-		# remove any dangling images
-		(docker images -q --no-trunc --filter 'dangling=true' | xargs -n1 -r docker rmi) 2>/dev/null || :
-
-		for IMAGE in stests/opennms stests/minion stests/tomcat stests/snmpd; do
-			(docker images -q --no-trunc -a "${IMAGE}" | xargs -n1 -r docker rmi) 2>/dev/null || :
-		done
+		docker system prune --all --volumes --force 2>/dev/null || :
 	fi
 
 	# remove any dangling mounted volumes
-	(docker volume ls -q --filter 'dangling=true' | xargs -n1 -r docker volume rm) 2>/dev/null || :
+	docker system prune --volumes --force 2>/dev/null || :
 	set -eo pipefail
 }
 
