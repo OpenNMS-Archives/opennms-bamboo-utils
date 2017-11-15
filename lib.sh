@@ -14,7 +14,7 @@ if [ -z "$MYDIR" ] || [ ! -d "$MYDIR" ]; then
 	exit 1
 fi
 
-# shellcheck source=environment.sh
+# shellcheck source=environment.sh disable=SC1091
 . "${MYDIR}/environment.sh"
 
 set -euo pipefail
@@ -254,7 +254,9 @@ fix_ownership() {
 	_workdir="$1"; shift
 	set +u
 	if [ -n "$1" ]; then
+		# shellcheck disable=SC2012
 		_chown_user="$(ls -n "$1" | awk '{ print $3 }')"
+		# shellcheck disable=SC2012
 		_chown_group="$(ls -n "$1" | awk '{ print $4 }')"
 	else
 		_chown_user="$(id -u bamboo 2>/dev/null)"
