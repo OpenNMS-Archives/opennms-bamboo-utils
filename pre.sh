@@ -16,4 +16,4 @@ clean_node_directories "${WORKDIR}"
 clean_opennms
 reset_postgresql
 reset_docker
-fix_ownership "${WORKDIR}"
+fix_ownership "${WORKDIR}" || :
