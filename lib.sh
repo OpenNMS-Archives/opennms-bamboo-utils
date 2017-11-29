@@ -273,3 +273,34 @@ fix_ownership() {
 
 	retry_sudo chown -R "${_chown_user}:${_chown_group}" "${_workdir}"
 }
+
+warn_ownership() {
+	local _workdir
+	local _user
+	local _group
+
+	_workdir="$1"; shift
+	if [ -z "$1" ]; then
+		echo 'You must specify a file to match!'
+		exit 1
+	fi
+	_checkfile="$1"; shift
+
+	set +u
+	# shellcheck disable=SC2012
+	_user="$(ls -n "${_checkfile}" | awk '{ print $3 }')"
+	# shellcheck disable=SC2012
+	_group="$(ls -n "${_checkfile}" | awk '{ print $4 }')"
+	set -u
+
+	if [ -z "${_user}" ] || [ -z "${_group}" ]; then
+		echo "Unable to determine UID and GID of ${_checkfile}"
+		exit 1
+	fi
+
+	COUNT="$(find "${_workdir}" ! -uid "${_user}" -o ! -gid "${_group}" | wc -l | sed -e 's, *,,')"
+	if [ "$COUNT" -gt 0 ]; then
+		echo "WARNING: $COUNT file(s) are not owned by ${_user}:${_group}."
+	fi
+	return "$COUNT"
+}
