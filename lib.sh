@@ -28,7 +28,7 @@ retry_sudo() {
 		return 0
 	else
 		rm /tmp/$$.output
-		echo "" | sudo "$@"
+		echo "" | sudo -n "$@"
 	fi
 	set -e
 }
