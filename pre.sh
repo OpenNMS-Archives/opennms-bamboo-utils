@@ -6,6 +6,7 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 # shellcheck source=lib.sh
 . "${MYDIR}/lib.sh"
 
+echo "OpenNMS Bamboo Utils Pre-Build: branch=$(get_git_branch_name "${MYDIR}")"
 increase_limits || :
 stop_compiles
 stop_firefox
