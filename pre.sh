@@ -6,7 +6,7 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 # shellcheck source=lib.sh
 . "${MYDIR}/lib.sh"
 
-increase_limits
+increase_limits || :
 stop_compiles
 stop_firefox
 stop_opennms
