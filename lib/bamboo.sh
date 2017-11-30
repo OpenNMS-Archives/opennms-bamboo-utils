@@ -29,9 +29,13 @@ get_branch_name() {
 generate_revision() {
 	local _workdir
 	_workdir="$1"; shift
+	_point=1
 
+	if [ "$#" -gt 0 ]; then
+		_point="$1"; shift
+	fi
 	DATESTAMP="$(get_git_date "${_workdir}")"
-	echo "0.${DATESTAMP}.1";
+	echo "0.${DATESTAMP}.${_point}";
 }
 
 set +euo pipefail
