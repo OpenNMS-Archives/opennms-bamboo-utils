@@ -35,6 +35,13 @@ case "$SMOKE_TEST_API_VERSION" in
 		# nothing special needed other than running the tests
 		echo "* Found Dockerized smoke tests"
 
+		case "$SMOKE_TEST_API_VERSION" in
+			"4"|"5"|"6"|"7"|"8"|"9")
+				echo "* Smoke Test API is >= 4, using newer Firefox if possible"
+				export PATH="/usr/local/firefox:$PATH"
+				;;
+		esac
+
 		mkdir -p "${DOCKERDIR}/opennms/rpms" "${DOCKERDIR}/minion/rpms"
 		rm -rf "${DOCKERDIR}"/opennms/rpms/*.rpm "${DOCKERDIR}"/minion/rpms/*.rpm
 		mv "${WORKDIR}"/rpms/*.rpm "${DOCKERDIR}/opennms/rpms/"
