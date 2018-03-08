@@ -183,6 +183,16 @@ get_branch_name() {
 	echo "${_branch_name}"
 }
 
+get_sanitized_branch_name() {
+	local _workdir
+	local _branch_name
+
+	_workdir="$1"; shift
+	_branch_name="$(get_branch_name "${_workdir}" | sed -e 's,[^[:alnum:]][^[:alnum:]]*,.,g' -e 's,^\.,,' -e 's,\.$,,')"
+
+	echo "${_branch_name}"
+}
+
 get_repo_name() {
 	local _workdir
 	local _repo_name
