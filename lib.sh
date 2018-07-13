@@ -123,7 +123,7 @@ reset_postgresql() {
 	retry_sudo service postgresql restart || :
 
 	set +euo pipefail
-	psql -U opennms -c 'SELECT datname FROM pg_database' -Pformat=unaligned -Pfooter=off 2>/dev/null | grep -E '^opennms_test' >/tmp/$$.databases
+	psql -U opennms -c 'SELECT datname FROM pg_database' -Pformat=unaligned -Pfooter=off 2>/dev/null | grep -E '^opennms_(test|it)_' >/tmp/$$.databases
 	set -euo pipefail
 
 	(while read -r DB; do
