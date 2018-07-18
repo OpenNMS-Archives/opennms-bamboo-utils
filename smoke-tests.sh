@@ -52,9 +52,16 @@ case "$SMOKE_TEST_API_VERSION" in
 			./build-docker-images.sh || exit 1
 		cd "${WORKDIR}" || exit 1
 
+		EXTRA_ARGS=""
+		# shellcheck disable=SC2154
+		if [ -n "${bamboo_capability_host_address}" ]; then
+			EXTRA_ARGS="-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}"
+		fi
+
 		cd opennms-source || exit 1
 			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || exit 1
 			cd smoke-test || exit 1
+				# shellcheck disable=SC2086
 				xvfb-run \
 					--wait=20 \
 					--server-args="-screen 0 1920x1080x24" \
@@ -67,6 +74,7 @@ case "$SMOKE_TEST_API_VERSION" in
 					-Dorg.opennms.smoketest.logLevel=INFO \
 					-Dtest.fork.count=2 \
 					-Dorg.opennms.smoketest.docker=true \
+					$EXTRA_ARGS \
 					-Dsmoke=true \
 					-t || exit 1
 			cd ..
