@@ -20,6 +20,35 @@ fi
 set -euo pipefail
 
 ### SYSTEM SCRIPTS ###
+get_primary_host_ip() {
+	local _host_ip
+	local _hostname
+	local _ifconfig
+
+	set +e
+
+	_hostname="$(hostname)"
+	if [ "$(host "$_hostname" 2>/dev/null | grep -c 'has address')" -gt 0 ]; then
+		_host_ip="$(host "$_hostname" 2>/dev/null | grep 'has address' | head -n 1 | sed -e 's,^.*has address ,,')"
+	else
+		_ifconfig="$(command -v ifconfig)"
+		if [ -n "$_ifconfig" ]; then
+			_host_ip="$(ifconfig "$(netstat -rn | grep -E "^default|^0.0.0.0" | head -1 | awk '{print $NF}')" 2>/dev/null | grep 'inet ' | awk '{print $2}' | sed -e 's,^addr:,,' -e 's,/.*$,,')"
+		else
+			_host_ip="$(ip addr show dev "$(netstat -rn | grep -E "^default|^0.0.0.0" | head -1 | awk '{print $NF}')" 2>/dev/null | grep 'inet ' | awk '{print $2}' | sed -e 's,^addr:,,' -e 's,/.*$,,')"
+		fi
+
+	fi
+
+	if [ -n "$_host_ip" ]; then
+		echo "$_host_ip"
+	else
+		echo 127.0.0.1
+	fi
+
+	set -e
+}
+
 retry_sudo() {
 	set +e
 	if echo "" | "$@" >/tmp/$$.output 2>&1; then
@@ -67,7 +96,7 @@ stop_opennms() {
 	local _systemctl
 	local _opennms
 
-	_systemctl="$(which systemctl 2>/dev/null || :)"
+	_systemctl="$(command -v systemctl 2>/dev/null || :)"
 	_opennms="/opt/opennms/bin/opennms"
 
 	if [ -e "${_systemctl}" ] && [ -x "${_systemctl}" ]; then
