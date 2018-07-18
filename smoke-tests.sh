@@ -3,7 +3,7 @@
 MYDIR=$(dirname "$0")
 MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
-# shellcheck source=lib.sh
+# shellcheck source=lib.sh disable=SC1091
 . "${MYDIR}/lib.sh"
 
 set +eo pipefail
@@ -52,9 +52,9 @@ case "$SMOKE_TEST_API_VERSION" in
 			./build-docker-images.sh || exit 1
 		cd "${WORKDIR}" || exit 1
 
-		cd opennms-source
+		cd opennms-source || exit 1
 			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || exit 1
-			cd smoke-test
+			cd smoke-test || exit 1
 				xvfb-run \
 					--wait=20 \
 					--server-args="-screen 0 1920x1080x24" \
@@ -73,7 +73,7 @@ case "$SMOKE_TEST_API_VERSION" in
 		cd ..
 		;;
 	*)
-		cd smoke
+		cd smoke || exit 1
 			# this branch has the old-style smoke tests
 			echo "* Did NOT find Dockerized smoke tests"
 			SHUNT_RPM="$(find debian-shunt -name debian-shunt-\*.noarch.rpm | sort -u | tail -n 1)"
