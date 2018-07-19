@@ -54,9 +54,11 @@ case "$SMOKE_TEST_API_VERSION" in
 
 		EXTRA_ARGS=""
 		# shellcheck disable=SC2154
+		set +u
 		if [ -n "${bamboo_capability_host_address}" ]; then
 			EXTRA_ARGS="-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}"
 		fi
+		set -u
 
 		cd opennms-source || exit 1
 			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || exit 1
