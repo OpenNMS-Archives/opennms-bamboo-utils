@@ -28,13 +28,16 @@ SKIP_CLEAN=true
 
 COMPILE_OPTIONS=("${COMPILE_OPTIONS[@]}" "-Dmaxmemory=3g")
 
-if [ -x "opennms-source/bin/javahome.pl" ]; then
-	JAVA_HOME="$(opennms-source/bin/javahome.pl)"
+if [ -x "${WORKDIR}/bin/javahome.pl" ]; then
+	JAVA_HOME="$("${WORKDIR}"/bin/javahome.pl)"
 fi
 
 export COMPILE_OPTIONS JAVA_HOME JICMP_USE_SOCK_DGRAM MAVEN_OPTS MYDIR PATH SKIP_OPENJDK SKIP_CLEAN
 
 set -eo pipefail
+
+cd "${WORKDIR}" || exit 1
+mkdir -p "${WORKDIR}/target"
 
 # create a list of test classes
 find ./* -name \*Test.java | \
