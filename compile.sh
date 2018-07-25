@@ -11,7 +11,7 @@ pushd "${WORKDIR}"
 	"${MYDIR}/compile-only.sh" "${WORKDIR}"
 
 	pushd opennms-full-assembly
-		"${WORKDIR}/bin/bamboo.pl" -Prun-expensive-tasks "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
+		"${WORKDIR}/compile.pl" -Prun-expensive-tasks "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install
 	popd
 
 popd
