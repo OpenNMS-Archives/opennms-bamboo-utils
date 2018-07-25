@@ -177,13 +177,12 @@ reset_docker() {
 	fi
 
 	if [ -e /var/run/docker.sock ]; then
-#		cat <<END >/tmp/docker-gc-exclude.txt
-#opennms/.*:.*
-#stests/.*:.*
-#END
+		cat <<END >/tmp/docker-gc-exclude.txt
+.*kafka.*:.*
+.*elasticsearch.*:.*
+END
 		# garbage-collect old docker containers and images
-		# -v /tmp/docker-gc-exclude.txt:/tmp/docker-gc-exclude.txt EXCLUDE_FROM_GC=/tmp/docker-gc-exclude.txt
-		(docker run -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc env MINIMUM_IMAGES_TO_SAVE=1 /docker-gc) 2>/dev/null || :
+		(docker run -v /tmp/docker-gc-exclude.txt:/tmp/docker-gc-exclude.txt -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc env MINIMUM_IMAGES_TO_SAVE=1 EXCLUDE_FROM_GC=/tmp/docker-gc-exclude.txt /docker-gc) 2>/dev/null || :
 	else
 		docker system prune --all --volumes --force 2>/dev/null || :
 	fi
