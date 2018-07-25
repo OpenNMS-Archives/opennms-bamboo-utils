@@ -165,18 +165,25 @@ reset_postgresql() {
 
 reset_docker() {
 	echo "- killing and removing existing Docker containers..."
+	local docker_running
 	set +eo pipefail
+
 	# shellcheck disable=SC2046
 	# stop all running docker containers
-	(docker kill $(docker ps --no-trunc -a -q)) 2>/dev/null || :
+	docker_running="$(docker ps --no-trunc -a -q)"
+	if [ -n "${docker_running}" ]; then
+		# shellcheck disable=SC2086
+		docker kill ${docker_running} 2>/dev/null || :
+	fi
 
 	if [ -e /var/run/docker.sock ]; then
-		cat <<END >/tmp/docker-gc-exclude.txt
-opennms/.*:.*
-stests/.*:.*
-END
+#		cat <<END >/tmp/docker-gc-exclude.txt
+#opennms/.*:.*
+#stests/.*:.*
+#END
 		# garbage-collect old docker containers and images
-		(docker run -v /tmp/docker-gc-exclude.txt:/tmp/docker-gc-exclude.txt -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc env MINIMUM_IMAGES_TO_SAVE=1 EXCLUDE_FROM_GC=/tmp/docker-gc-exclude.txt /docker-gc) 2>/dev/null || :
+		# -v /tmp/docker-gc-exclude.txt:/tmp/docker-gc-exclude.txt EXCLUDE_FROM_GC=/tmp/docker-gc-exclude.txt
+		(docker run -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc env MINIMUM_IMAGES_TO_SAVE=1 /docker-gc) 2>/dev/null || :
 	else
 		docker system prune --all --volumes --force 2>/dev/null || :
 	fi
