@@ -261,7 +261,7 @@ get_git_hash() {
 
 clean_m2_repository() {
 	if [ -d "$HOME/.m2" ]; then
-		retry_sudo rm -rf "$HOME"/.m2/repository*/org/opennms
+		retry_sudo rm -rf "$HOME"/.m2/repository*/{com,org}/opennms
 	fi
 }
 
