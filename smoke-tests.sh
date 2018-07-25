@@ -53,8 +53,8 @@ case "$SMOKE_TEST_API_VERSION" in
 		cd "${WORKDIR}" || exit 1
 
 		EXTRA_ARGS=""
-		# shellcheck disable=SC2154
 		set +u
+		# shellcheck disable=SC2154
 		if [ -n "${bamboo_capability_host_address}" ]; then
 			EXTRA_ARGS="-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}"
 		fi
