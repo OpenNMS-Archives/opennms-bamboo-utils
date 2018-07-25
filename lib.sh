@@ -172,8 +172,8 @@ reset_docker() {
 
 	if [ -e /var/run/docker.sock ]; then
 		cat <<END >/tmp/docker-gc-exclude.txt
-opennms/*
-stests/*
+opennms/.*:.*
+stests/.*:.*
 END
 		# garbage-collect old docker containers and images
 		(docker run -v /tmp/docker-gc-exclude.txt:/tmp/docker-gc-exclude.txt -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc env MINIMUM_IMAGES_TO_SAVE=1 EXCLUDE_FROM_GC=/tmp/docker-gc-exclude.txt /docker-gc) 2>/dev/null || :
