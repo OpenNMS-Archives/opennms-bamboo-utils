@@ -21,7 +21,7 @@ fi
 set +eo pipefail
 
 JICMP_USE_SOCK_DGRAM=1
-MAVEN_OPTS="-Xmx3g"
+MAVEN_OPTS="-Xmx3g -XX:ReservedCodeCacheSize=512m -XX:PermSize=512m -XX:MaxPermSize=1g"
 PATH="/opt/firefox:/usr/local/bin:$PATH"
 SKIP_OPENJDK=1
 SKIP_CLEAN=true
