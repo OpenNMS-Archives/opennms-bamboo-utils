@@ -301,17 +301,21 @@ get_classes() {
 	_workdir="$1"; shift
 	_outputdir="$1"; shift
 	_suffix="$1"; shift
-	_exclude="$1"; shift
+	_exclude="$1"; shift || :
 
 	(
-		set -eo pipefail
+		set -e
+		set +o pipefail
 
 		_workfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')-files.txt"
 		_outputfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')s.txt"
+
+		FIND=(find "${_workdir}/" -type f -name "*${_suffix}.java")
+		"${FIND[@]}"
 		if [ -n "${_exclude}" ]; then
-			find "${_workdir}/" -type f -name "*${_suffix}.java" | sed -e 's,//*,/,g' | grep -v "${_exclude}" > "${_workfile}"
+			"${FIND[@]}" | sed -e 's,//,/,g' | grep -v "${_exclude}" > "${_workfile}"
 		else
-			find "${_workdir}/" -type f -name "*${_suffix}.java" | sed -e 's,//*,/,g' > "${_workfile}"
+			"${FIND[@]}" | sed -e 's,//,/,g' > "${_workfile}"
 		fi
 		xargs grep 'public class' < "${_workfile}" | \
 			cut -d: -f2 | \
