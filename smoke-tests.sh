@@ -63,7 +63,9 @@ if [ -z "${TEST_COUNT}" ]; then
 	echo "Failed to figure out how many tests there are."
 	exit 1
 fi
-split -l $(( TEST_COUNT / NUM_JOBS )) "${SPLIT_TMPDIR}/tests.txt" "${SPLIT_TMPDIR}/tests."
+if [ "$TEST_COUNT" -gt 0 ]; then
+	split -l $(( TEST_COUNT / NUM_JOBS )) "${SPLIT_TMPDIR}/tests.txt" "${SPLIT_TMPDIR}/tests."
+fi
 
 # split the list of ITs into $NUM_JOBS pieces
 IT_COUNT="$(wc -l < "${SPLIT_TMPDIR}/its.txt")"
@@ -71,31 +73,36 @@ if [ -z "${IT_COUNT}" ]; then
 	echo "Failed to figure out how many ITs there are."
 	exit 1
 fi
-split -l $(( IT_COUNT / NUM_JOBS )) "${SPLIT_TMPDIR}/its.txt" "${SPLIT_TMPDIR}/its."
+if [ "$IT_COUNT" -gt 0 ]; then
+	split -l $(( IT_COUNT / NUM_JOBS )) "${SPLIT_TMPDIR}/its.txt" "${SPLIT_TMPDIR}/its."
+fi
 
-if [ ! -e "${SPLIT_TMPDIR}/tests.${JOB_INDEX}" ] || [ ! -e "${SPLIT_TMPDIR}/its.${JOB_INDEX}" ]; then
+if [ ! -e "${SPLIT_TMPDIR}/tests.${JOB_INDEX}" ] && [ ! -e "${SPLIT_TMPDIR}/its.${JOB_INDEX}" ]; then
 	echo "Job index ${JOB_INDEX} does not exist."
-	ls -1 "${SPLIT_TMPDIR}"/tests.*
-	ls -1 "${SPLIT_TMPDIR}"/its.*
+	ls -1 "${SPLIT_TMPDIR}"/tests.* || :
+	ls -1 "${SPLIT_TMPDIR}"/its.* || :
 	exit 1
 fi
 
-TESTS="$(paste -sd , - < "${SPLIT_TMPDIR}/tests.${JOB_INDEX}")"
-ITS="$(paste -sd , - < "${SPLIT_TMPDIR}/its.${JOB_INDEX}")"
+TESTS=""
+ITS=""
+
+if [ "$TEST_COUNT" -gt 0 ]; then
+	TESTS="$(paste -sd , - < "${SPLIT_TMPDIR}/tests.${JOB_INDEX}")"
+fi
+if [ "$IT_COUNT" -gt 0 ]; then
+	ITS="$(paste -sd , - < "${SPLIT_TMPDIR}/its.${JOB_INDEX}")"
+fi
 
 echo "Running tests: ${TESTS}"
 echo "Running ITs: ${ITS}"
 
 if [ -n "${TESTS}" ]; then
 	TESTS="-Dtest=${TESTS}"
-else
-	TESTS=""
 fi
 
 if [ -n "${ITS}" ]; then
 	ITS="-Dit.test=${ITS}"
-else
-	ITS=""
 fi
 
 SMOKE_TEST_API_VERSION="$(grep -C1 org.opennms.smoke.test-api "${WORKDIR}/opennms-source/smoke-test/pom.xml"  | grep '<version>' | sed -e 's,.*<version>,,' -e 's,</version>,,' -e 's,-SNAPSHOT$,,')"

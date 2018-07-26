@@ -40,18 +40,18 @@ cd "${WORKDIR}" || exit 1
 mkdir -p "${WORKDIR}/target"
 
 # create a list of test classes
-find ./* -name \*Test.java | \
-	grep -v -E '^./smoke-test' | \
-	xargs grep 'public class' | \
+find ./* -name \*Test.java -print0 | \
+	xargs -0 grep 'public class' | \
+	grep -v '/smoke-test/' | \
 	cut -d: -f2 | \
 	awk '{ print $3 }' | \
 	grep -E 'Test$' | \
 	sort -u > target/tests.txt
 
 # create a list of integration test classes
-find ./* -name \*IT.java | \
-	grep -v -E '^./smoke-test' | \
-	xargs grep 'public class' | \
+find ./* -name \*IT.java -print0 | \
+	xargs -0 grep 'public class' | \
+	grep -v '/smoke-test/' | \
 	cut -d: -f2 | \
 	awk '{ print $3 }' | \
 	grep -E 'IT$' | \
@@ -63,7 +63,9 @@ if [ -z "${TEST_COUNT}" ]; then
 	echo "Failed to figure out how many tests there are."
 	exit 1
 fi
-split -l $(( TEST_COUNT / NUM_JOBS )) target/tests.txt target/tests.
+if [ "$TEST_COUNT" -gt 0 ]; then
+	split -l $(( TEST_COUNT / NUM_JOBS )) target/tests.txt target/tests.
+fi
 
 # split the list of ITs into $NUM_JOBS pieces
 IT_COUNT="$(wc -l < target/its.txt)"
@@ -71,7 +73,9 @@ if [ -z "${IT_COUNT}" ]; then
 	echo "Failed to figure out how many ITs there are."
 	exit 1
 fi
-split -l $(( IT_COUNT / NUM_JOBS )) target/its.txt target/its.
+if [ "$IT_COUNT" -gt 0 ]; then
+	split -l $(( IT_COUNT / NUM_JOBS )) target/its.txt target/its.
+fi
 
 if [ ! -e target/"tests.${JOB_INDEX}" ] || [ ! -e target/"its.${JOB_INDEX}" ]; then
 	echo "Job index ${JOB_INDEX} does not exist."
