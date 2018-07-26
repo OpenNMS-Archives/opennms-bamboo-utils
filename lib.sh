@@ -288,6 +288,99 @@ clean_node_directories() {
 }
 
 ### Filesystem/Path Admin ###
+
+get_classes() {
+	local _workdir
+	local _outputdir
+	local _suffix
+	local _exclude
+
+	local _workfile
+	local _outputfile
+
+	_workdir="$1"; shift
+	_outputdir="$1"; shift
+	_suffix="$1"; shift
+	_exclude="$1"; shift
+
+	(
+		set -eo pipefail
+
+		_workfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')-files.txt"
+		_outputfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')s.txt"
+		if [ -n "${_exclude}" ]; then
+			find "${_workdir}/" -type f -name "*${_suffix}.java" | sed -e 's,//*,/,g' | grep -v "${_exclude}" > "${_workfile}"
+		else
+			find "${_workdir}/" -type f -name "*${_suffix}.java" | sed -e 's,//*,/,g' > "${_workfile}"
+		fi
+		xargs grep 'public class' < "${_workfile}" | \
+			cut -d: -f2 | \
+			sed -e 's,^.*public[	 ][	 ]*class[	 ][	 ]*,,' -e 's,[	 ][	 ]*.*$,,' | \
+			grep -E "${_suffix}"'$' | \
+			sort -u > "${_outputfile}"
+		echo "${_outputfile}"
+	)
+}
+
+get_test_classes() {
+	get_classes "$1" "$2" "Test" "$3"
+}
+
+get_it_classes() {
+	get_classes "$1" "$2" "IT" "$3"
+}
+
+split_file() {
+	local _inputfile
+	local _pieces
+
+	local _count
+	local _outputdir
+	local _prefix
+
+	_inputfile="$1"; shift
+	_pieces="$1"; shift
+
+	(
+		set -eo pipefail
+		_outputdir="$(dirname "${_inputfile}")"
+		_prefix="${_inputfile%.*}"
+
+		_count="$(wc -l < "${_inputfile}")"
+		if [ -z "${_count}" ] || [ "${_count}" -eq 0 ]; then
+			echo "no lines found" >&2
+			echo 0
+			return
+		fi
+		split -l $(( _count / _pieces )) "${_inputfile}" "${_prefix}."
+		echo "${_count}"
+	)
+}
+
+get_tests() {
+	local _testfile
+	local _job
+
+	local _prefix
+
+	_testfile="$1"; shift
+	_job="$1"; shift
+
+	(
+		set -eo pipefail
+
+		_prefix="${_testfile%.*}"
+
+		if [ ! -e "${_prefix}.${_job}" ]; then
+			echo "WARNING: ${_prefix}.${_job} does not exist. Returning an empty string." >&2
+			echo ""
+			return
+		fi
+
+		paste -sd , - < "${_prefix}.${_job}"
+	)
+}
+
 # usage: fix_ownership $WORKDIR [$file_to_match]
 # If file_to_match is not passed, attempts to use the bamboo uid/gid.
 # If bamboo uid/gid can't be determined, falls back to the 'opennms' user/group.
