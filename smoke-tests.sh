@@ -18,15 +18,18 @@ if [ -z "$JOB_INDEX" ]; then
 	JOB_INDEX=aa
 fi
 
+if [ ! -x "${WORKDIR}/opennms-source/compile.pl" ]; then
+	echo "\$WORKDIR should be set to the bamboo root. It is expected this directory contains rpms and opennms-source."
+	exit 1
+fi
+
 set +eo pipefail
 
-export PATH="/opt/firefox:/usr/local/bin:$PATH"
-export PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
+JAVA_HOME="$(opennms-source/bin/javahome.pl)"
+PATH="/opt/firefox:/usr/local/bin:$PATH"
+PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
 
-if [ -x "opennms-source/bin/javahome.pl" ]; then
-	JAVA_HOME="$(opennms-source/bin/javahome.pl)"
-fi
-export JAVA_HOME
+export JAVA_HOME PATH PHANTOMJS_CDNURL
 
 CORE_RPM="$(find rpms -name opennms-core-\*.rpm -o -name meridian-core-\*.rpm)"
 if [ "$(echo "$CORE_RPM" | wc -w)" -ne 1 ]; then
@@ -38,11 +41,14 @@ RPM_VERSION="$(rpm -q --queryformat='%{version}-%{release}\n' -p "${CORE_RPM}")"
 echo "RPM Version: $RPM_VERSION"
 ls -1 "${WORKDIR}"/rpms/*
 
+set -eo pipefail
+
+cd "${WORKDIR}" || exit 1
 export SPLIT_TMPDIR="${WORKDIR}/tmp-split"
 mkdir -p "${SPLIT_TMPDIR}"
 
 # create a list of test classes
-find smoke-test -name \*Test.java -print0 | \
+find opennms-source/smoke-test -name \*Test.java -print0 | \
 	xargs -0 grep 'public class' | \
 	cut -d: -f2 | \
 	awk '{ print $3 }' | \
@@ -50,7 +56,7 @@ find smoke-test -name \*Test.java -print0 | \
 	sort -u > "${SPLIT_TMPDIR}/tests.txt"
 
 # create a list of integration test classes
-find smoke-test -name \*IT.java -print0 | \
+find opennms-source/smoke-test -name \*IT.java -print0 | \
 	xargs -0 grep 'public class' | \
 	cut -d: -f2 | \
 	awk '{ print $3 }' | \
