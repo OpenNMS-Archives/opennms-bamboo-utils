@@ -298,10 +298,16 @@ get_classes() {
 	local _workfile
 	local _outputfile
 
+	set +u
 	_workdir="$1"; shift
 	_outputdir="$1"; shift
 	_suffix="$1"; shift
-	_exclude="$1"; shift || :
+	if [ -n "$1" ]; then
+		_exclude="$1"
+	else
+		_exclude=""
+	fi
+	set -u
 
 	(
 		set -e
@@ -311,7 +317,7 @@ get_classes() {
 		_outputfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')s.txt"
 
 		FIND=(find "${_workdir}/" -type f -name "*${_suffix}.java")
-		if [ -n "${_exclude-}" ]; then
+		if [ -n "${_exclude}" ]; then
 			"${FIND[@]}" | sed -e 's,//,/,g' | grep -v "${_exclude}" > "${_workfile}"
 		else
 			"${FIND[@]}" | sed -e 's,//,/,g' > "${_workfile}"
