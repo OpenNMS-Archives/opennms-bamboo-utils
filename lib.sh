@@ -312,7 +312,7 @@ get_classes() {
 
 		FIND=(find "${_workdir}/" -type f -name "*${_suffix}.java")
 		"${FIND[@]}"
-		if [ -n "${_exclude}" ]; then
+		if [ -n "${_exclude-}" ]; then
 			"${FIND[@]}" | sed -e 's,//,/,g' | grep -v "${_exclude}" > "${_workfile}"
 		else
 			"${FIND[@]}" | sed -e 's,//,/,g' > "${_workfile}"
@@ -324,14 +324,6 @@ get_classes() {
 			sort -u > "${_outputfile}"
 		echo "${_outputfile}"
 	)
-}
-
-get_test_classes() {
-	get_classes "$1" "$2" "Test" "$3"
-}
-
-get_it_classes() {
-	get_classes "$1" "$2" "IT" "$3"
 }
 
 split_file() {
