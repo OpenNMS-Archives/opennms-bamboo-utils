@@ -316,6 +316,11 @@ get_classes() {
 		_workfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')-files.txt"
 		_outputfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')s.txt"
 
+		if [ ! -d "${_workdir}" ]; then
+			echo "${_workdir} is not a directory."
+			exit 1
+		fi
+
 		FIND=(find "${_workdir}/" -type f -name "*${_suffix}.java")
 		if [ -n "${_exclude}" ]; then
 			"${FIND[@]}" | sed -e 's,//,/,g' | grep -v "${_exclude}" > "${_workfile}"
