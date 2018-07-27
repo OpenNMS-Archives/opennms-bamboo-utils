@@ -311,7 +311,6 @@ get_classes() {
 		_outputfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')s.txt"
 
 		FIND=(find "${_workdir}/" -type f -name "*${_suffix}.java")
-		"${FIND[@]}"
 		if [ -n "${_exclude-}" ]; then
 			"${FIND[@]}" | sed -e 's,//,/,g' | grep -v "${_exclude}" > "${_workfile}"
 		else
