@@ -19,7 +19,7 @@ if [ -z "$JOB_INDEX" ]; then
 fi
 
 if [ ! -x "${WORKDIR}/opennms-source/compile.pl" ]; then
-	echo "\$WORKDIR should be set to the bamboo root. It is expected this directory contains rpms and opennms-source."
+	echo "\$WORKDIR should be set to the bamboo root. It is expected this directory contains rpms and an opennms-source directory."
 	exit 1
 fi
 
@@ -42,11 +42,15 @@ cd "${WORKDIR}" || exit 1
 export SPLIT_TMPDIR="${WORKDIR}/tmp-split"
 mkdir -p "${SPLIT_TMPDIR}"
 
-TEST_FILE="$(get_classes "${WORKDIR}/opennms-source" "${SPLIT_TMPDIR}" "Test" opennms-source/smoke-test)"
-split_file "${TEST_FILE}" "${NUM_JOBS}"
+TEST_FILE="$(get_classes "${WORKDIR}/opennms-source" "${SPLIT_TMPDIR}" "Test" opennms-source/smoke-test || :)"
+if [ -n "${TEST_FILE}" ]; then
+	split_file "${TEST_FILE}" "${NUM_JOBS}"
+fi
 
-IT_FILE="$(get_classes "${WORKDIR}/opennms-source" "${SPLIT_TMPDIR}" "IT" opennms-source/smoke-test)"
-split_file "${IT_FILE}" "${NUM_JOBS}"
+IT_FILE="$(get_classes "${WORKDIR}/opennms-source" "${SPLIT_TMPDIR}" "IT" opennms-source/smoke-test || :)"
+if [ -n "${IT_FILE}" ]; then
+	split_file "${IT_FILE}" "${NUM_JOBS}"
+fi
 
 if [ ! -e "${SPLIT_TMPDIR}/tests.${JOB_INDEX}" ] && [ ! -e "${SPLIT_TMPDIR}/its.${JOB_INDEX}" ]; then
 	echo "Job index ${JOB_INDEX} does not exist."
@@ -69,6 +73,7 @@ if [ -n "${ITS}" ]; then
 	ITS="-Dit.test=${ITS}"
 fi
 
+cd "${WORKDIR}/opennms-source"
 ./compile.pl "${COMPILE_OPTIONS[@]}" "${ENABLE_TESTS[@]}" \
 	-Dorg.opennms.core.test-api.dbCreateThreads=1 \
 	-Dorg.opennms.core.test-api.snmp.useMockSnmpStrategy=false \
