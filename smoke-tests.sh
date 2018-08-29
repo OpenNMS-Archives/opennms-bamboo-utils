@@ -47,10 +47,10 @@ cd "${WORKDIR}" || exit 1
 export SPLIT_TMPDIR="${WORKDIR}/tmp-split"
 mkdir -p "${SPLIT_TMPDIR}"
 
-TEST_FILE="$(get_classes "${WORKDIR}/opennms-source" "${SPLIT_TMPDIR}" "Test")"
+TEST_FILE="$(get_classes "${WORKDIR}/opennms-source/smoke-test" "${SPLIT_TMPDIR}" "Test")"
 split_file "${TEST_FILE}" "${NUM_JOBS}"
 
-IT_FILE="$(get_classes "${WORKDIR}/opennms-source" "${SPLIT_TMPDIR}" "IT")"
+IT_FILE="$(get_classes "${WORKDIR}/opennms-source/smoke-test" "${SPLIT_TMPDIR}" "IT")"
 split_file "${IT_FILE}" "${NUM_JOBS}"
 
 if [ ! -e "${SPLIT_TMPDIR}/tests.${JOB_INDEX}" ] && [ ! -e "${SPLIT_TMPDIR}/its.${JOB_INDEX}" ]; then
@@ -126,7 +126,6 @@ case "$SMOKE_TEST_API_VERSION" in
 					-Dorg.opennms.smoketest.docker=true \
 					$EXTRA_ARGS \
 					-Dsmoke=true \
-					-DfailIfNoTests=false \
 					$TESTS \
 					$ITS \
 					-t install || exit 1
