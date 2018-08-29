@@ -126,6 +126,7 @@ case "$SMOKE_TEST_API_VERSION" in
 					-Dorg.opennms.smoketest.docker=true \
 					$EXTRA_ARGS \
 					-Dsmoke=true \
+					-DfailIfNoTests=false \
 					$TESTS \
 					$ITS \
 					-t install || exit 1
