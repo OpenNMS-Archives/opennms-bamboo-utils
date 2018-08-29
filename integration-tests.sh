@@ -83,4 +83,5 @@ cd "${WORKDIR}/opennms-source"
 	-Pbuild-bamboo \
 	-Dtest="${TESTS}" \
 	-Dit.test="${ITS}" \
+	-DfailIfNoTests=false \
 	install
