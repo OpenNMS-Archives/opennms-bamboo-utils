@@ -128,7 +128,7 @@ case "$SMOKE_TEST_API_VERSION" in
 					-Dsmoke=true \
 					$TESTS \
 					$ITS \
-					-t || exit 1
+					-t install || exit 1
 			cd ..
 		cd ..
 		;;
