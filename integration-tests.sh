@@ -30,7 +30,7 @@ COMPILE_OPTIONS=("${COMPILE_OPTIONS[@]}" "-Dmaxmemory=3g")
 JAVA_HOME="$("${WORKDIR}"/opennms-source/bin/javahome.pl)"
 JICMP_USE_SOCK_DGRAM=1
 MAVEN_OPTS="-Xmx3g -XX:ReservedCodeCacheSize=512m -XX:PermSize=512m -XX:MaxPermSize=1g"
-PATH="/opt/firefox:/usr/local/bin:$PATH"
+PATH="/usr/local/firefox-45:/opt/firefox:/usr/local/bin:$PATH"
 SKIP_OPENJDK=1
 SKIP_CLEAN=true
 

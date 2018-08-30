@@ -26,7 +26,7 @@ fi
 set +eo pipefail
 
 JAVA_HOME="$(opennms-source/bin/javahome.pl)"
-PATH="/opt/firefox:/usr/local/bin:$PATH"
+PATH="/usr/local/firefox-45:/opt/firefox:/usr/local/bin:$PATH"
 PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
 
 export JAVA_HOME PATH PHANTOMJS_CDNURL
