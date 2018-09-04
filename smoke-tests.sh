@@ -133,6 +133,10 @@ case "$SMOKE_TEST_API_VERSION" in
 		cd ..
 		;;
 	*)
+		if [ "${JOB_INDEX}" != "aa" ]; then
+			echo "Smoke tests for old branches will only run on the first job index."
+			exit 0
+		fi
 		cd smoke || exit 1
 			# this branch has the old-style smoke tests
 			echo "* Did NOT find Dockerized smoke tests"
