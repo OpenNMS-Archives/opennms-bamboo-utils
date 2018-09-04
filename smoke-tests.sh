@@ -48,15 +48,17 @@ export SPLIT_TMPDIR="${WORKDIR}/tmp-split"
 mkdir -p "${SPLIT_TMPDIR}"
 
 TEST_FILE="$(get_classes "${WORKDIR}/opennms-source/smoke-test" "${SPLIT_TMPDIR}" "Test")"
-split_file "${TEST_FILE}" "${NUM_JOBS}"
+TEST_LINES="$(split_file "${TEST_FILE}" "${NUM_JOBS}")"
 
 IT_FILE="$(get_classes "${WORKDIR}/opennms-source/smoke-test" "${SPLIT_TMPDIR}" "IT")"
-split_file "${IT_FILE}" "${NUM_JOBS}"
+IT_LINES="$(split_file "${IT_FILE}" "${NUM_JOBS}")"
 
-if [ ! -e "${SPLIT_TMPDIR}/tests.${JOB_INDEX}" ] && [ ! -e "${SPLIT_TMPDIR}/its.${JOB_INDEX}" ]; then
-	echo "Job index ${JOB_INDEX} does not exist."
+if [ "${TEST_LINES}" -eq 0 ] && [ "${IT_LINES}" -eq 0 ]; then
+	echo "No jobs found."
 	ls -1 "${SPLIT_TMPDIR}"/tests.* || :
+	wc -l "${SPLIT_TMPDIR}"/tests.* || :
 	ls -1 "${SPLIT_TMPDIR}"/its.* || :
+	wc -l "${SPLIT_TMPDIR}"/its.* || :
 	exit 1
 fi
 
