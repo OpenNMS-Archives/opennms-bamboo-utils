@@ -341,6 +341,7 @@ split_file() {
 	local _pieces
 
 	local _count
+	local _lines
 	local _outputdir
 	local _prefix
 
@@ -358,8 +359,14 @@ split_file() {
 			echo 0
 			return
 		fi
-		split -l $(( _count / _pieces )) "${_inputfile}" "${_prefix}."
-		echo "${_count}"
+		_lines=$(( _count / _pieces ));
+		if [ "${_lines}" -lt 1 ]; then
+			split -l "${_lines}" "${_inputfile}" "${_prefix}."
+			echo "${_count}"
+		else
+			echo "WARNING: ${_count} / ${_pieces} is zero." >&2
+			echo "0"
+		fi
 	)
 }
 
