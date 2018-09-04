@@ -360,12 +360,12 @@ split_file() {
 			return
 		fi
 		_lines=$(( _count / _pieces ));
-		if [ "${_lines}" -lt 1 ]; then
-			split -l "${_lines}" "${_inputfile}" "${_prefix}."
-			echo "${_count}"
-		else
+		if [ "${_lines}" -eq 0 ]; then
 			echo "WARNING: ${_count} / ${_pieces} is zero." >&2
 			echo "0"
+		else
+			split -l "${_lines}" "${_inputfile}" "${_prefix}."
+			echo "${_count}"
 		fi
 	)
 }
