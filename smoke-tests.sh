@@ -8,6 +8,26 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
 set +eo pipefail
 
+FLAPPING=false
+
+while getopts f OPT; do
+	case $OPT in
+		f) FLAPPING=true
+			;;
+		*)
+			;;
+	esac
+done
+
+if [ "$FLAPPING" = "true" ]; then
+	SUPPORTS_FLAPPING="$(grep -c opennms.test.excludedGroups "${WORKDIR}/pom.xml")"
+
+	if [ "$SUPPORTS_FLAPPING" -eq 0 ]; then
+		echo "This branch does not support separating out flapping tests.  Skipping."
+		exit 0
+	fi
+fi
+
 export PATH="/opt/firefox:/usr/local/bin:$PATH"
 export PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
 
