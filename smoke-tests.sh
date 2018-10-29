@@ -72,18 +72,18 @@ case "$SMOKE_TEST_API_VERSION" in
 			./build-docker-images.sh || exit 1
 		cd "${WORKDIR}" || exit 1
 
-		EXTRA_ARGS=""
+		EXTRA_ARGS=()
 		# shellcheck disable=SC2154
 		set +u
 		if [ -n "${bamboo_capability_host_address}" ]; then
-			EXTRA_ARGS="-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}"
+			EXTRA_ARGS+=("-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}")
 		fi
 		set -u
 
 		RERUNS=2
 		if [ "$FLAPPING" = "true" ]; then
 			RERUNS=0
-			EXTRA_ARGS="${EXTRA_ARGS} -Dopennms.test.excludedGroups='!org.opennms.core.test.junit.FlappingTests' -Dopennms.test.groups='org.opennms.core.test.junit.FlappingTests'"
+			EXTRA_ARGS+=('-Dopennms.test.excludedGroups=!org.opennms.core.test.junit.FlappingTests' '-Dopennms.test.groups=org.opennms.core.test.junit.FlappingTests')
 		fi
 
 		cd opennms-source || exit 1
@@ -102,7 +102,7 @@ case "$SMOKE_TEST_API_VERSION" in
 					-Dorg.opennms.smoketest.logLevel=INFO \
 					-Dtest.fork.count=2 \
 					-Dorg.opennms.smoketest.docker=true \
-					$EXTRA_ARGS \
+					"${EXTRA_ARGS[@]}" \
 					-Dsmoke=true \
 					-t || exit 1
 			cd ..
