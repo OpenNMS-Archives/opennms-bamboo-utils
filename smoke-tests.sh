@@ -80,6 +80,12 @@ case "$SMOKE_TEST_API_VERSION" in
 		fi
 		set -u
 
+		RERUNS=2
+		if [ "$FLAPPING" = "true" ]; then
+			RERUNS=0
+			EXTRA_ARGS="${EXTRA_ARGS} -Dopennms.test.excludedGroups='!org.opennms.core.test.junit.FlappingTests' -Dopennms.test.groups='org.opennms.core.test.junit.FlappingTests'"
+		fi
+
 		cd opennms-source || exit 1
 			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || exit 1
 			cd smoke-test || exit 1
@@ -91,8 +97,8 @@ case "$SMOKE_TEST_API_VERSION" in
 					--auto-servernum \
 					--listen-tcp \
 					../compile.pl \
-					-Dsurefire.rerunFailingTestsCount=2 \
-					-Dfailsafe.rerunFailingTestsCount=2 \
+					-Dsurefire.rerunFailingTestsCount="${RERUNS}" \
+					-Dfailsafe.rerunFailingTestsCount="${RERUNS}" \
 					-Dorg.opennms.smoketest.logLevel=INFO \
 					-Dtest.fork.count=2 \
 					-Dorg.opennms.smoketest.docker=true \
