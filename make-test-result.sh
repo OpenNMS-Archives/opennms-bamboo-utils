@@ -14,7 +14,7 @@ cat <<END >"${WORKDIR}/target/failsafe-reports/failsafe-summary.xml"
   <completed>0</completed>
   <errors>0</errors>
   <failures>0</failures>
-  <skipped>0</skipped>
+  <skipped>420</skipped>
   <failureMessage/>
 </failsafe-summary>
 END
