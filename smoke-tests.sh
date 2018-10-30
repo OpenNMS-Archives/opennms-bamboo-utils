@@ -20,6 +20,8 @@ while getopts f OPT; do
 done
 
 if [ "$FLAPPING" = "true" ]; then
+	"${MYDIR}/make-test-result.sh" "${WORKDIR}"
+
 	SUPPORTS_FLAPPING="$(grep -c opennms.test.excludedGroups "${WORKDIR}/pom.xml")"
 
 	if [ "$SUPPORTS_FLAPPING" -eq 0 ]; then
