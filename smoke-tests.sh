@@ -20,7 +20,7 @@ while getopts f OPT; do
 done
 
 if [ "$FLAPPING" = "true" ]; then
-	"${MYDIR}/make-test-result.sh" "${WORKDIR}"
+	"${MYDIR}/make-test-result.sh" "${WORKDIR}/opennms-source"
 
 	SUPPORTS_FLAPPING="$(grep -c opennms.test.excludedGroups "${WORKDIR}/pom.xml")"
 
@@ -33,8 +33,8 @@ fi
 export PATH="/opt/firefox:/usr/local/bin:$PATH"
 export PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
 
-if [ -x "opennms-source/bin/javahome.pl" ]; then
-	JAVA_HOME="$(opennms-source/bin/javahome.pl)"
+if [ -x "${WORKDIR}/opennms-source/bin/javahome.pl" ]; then
+	JAVA_HOME="$("${WORKDIR}/opennms-source/bin/javahome.pl")"
 fi
 export JAVA_HOME
 
@@ -88,7 +88,7 @@ case "$SMOKE_TEST_API_VERSION" in
 			EXTRA_ARGS+=('-Dopennms.test.excludedGroups=!org.opennms.core.test.junit.FlappingTests' '-Dopennms.test.groups=org.opennms.core.test.junit.FlappingTests')
 		fi
 
-		cd opennms-source || exit 1
+		cd "${WORKDIR}/opennms-source" || exit 1
 			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || exit 1
 			cd smoke-test || exit 1
 				# shellcheck disable=SC2086
@@ -117,7 +117,7 @@ case "$SMOKE_TEST_API_VERSION" in
 			SHUNT_RPM="$(find debian-shunt -name debian-shunt-\*.noarch.rpm | sort -u | tail -n 1)"
 			sudo rpm -Uvh "$SHUNT_RPM" || :
 
-			sudo ./do-smoke-test.pl "${WORKDIR}"/opennms-source "${WORKDIR}"/rpms || exit 1
+			sudo ./do-smoke-test.pl "${WORKDIR}/opennms-source" "${WORKDIR}/rpms" || exit 1
 		cd ..
 		;;
 esac
