@@ -82,7 +82,7 @@ case "$SMOKE_TEST_API_VERSION" in
 		fi
 		set -u
 
-		RERUNS=1
+		RERUNS=2
 		if [ "$FLAPPING" = "true" ]; then
 			RERUNS=0
 			EXTRA_ARGS+=('-Dopennms.test.excludedGroups=!org.opennms.core.test.junit.FlappingTests' '-Dopennms.test.groups=org.opennms.core.test.junit.FlappingTests')
