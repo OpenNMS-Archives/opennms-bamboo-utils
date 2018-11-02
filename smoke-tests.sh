@@ -28,6 +28,9 @@ if [ "$FLAPPING" = "true" ]; then
 		echo "This branch does not support separating out flapping tests.  Skipping."
 		exit 0
 	fi
+	echo "* Running flapping tests."
+else
+	echo "* Skipping flapping tests."
 fi
 
 export PATH="/opt/firefox:/usr/local/bin:$PATH"
