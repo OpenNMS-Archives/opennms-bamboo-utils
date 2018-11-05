@@ -88,7 +88,7 @@ case "$SMOKE_TEST_API_VERSION" in
 		RERUNS=2
 		if [ "$FLAPPING" = "true" ] && [ "$SUPPORTS_FLAPPING" -gt 0 ]; then
 			RERUNS=0
-			EXTRA_ARGS+=('-Dopennms.test.excludedGroups=!org.opennms.core.test.junit.FlappingTests' '-Dopennms.test.groups=org.opennms.core.test.junit.FlappingTests')
+			EXTRA_ARGS+=('-Dopennms.test.excludedGroups=!org.opennms.core.test.junit.FlappingTests' '-Dopennms.test.groups=org.opennms.core.test.junit.FlappingTests' '-DrunFlappers=true')
 		fi
 
 		cd "${WORKDIR}/opennms-source" || exit 1
