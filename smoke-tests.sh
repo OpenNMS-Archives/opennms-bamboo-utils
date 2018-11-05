@@ -20,9 +20,9 @@ while getopts f OPT; do
 done
 
 if [ "$FLAPPING" = "true" ]; then
-	SUPPORTS_FLAPPING="$(grep -c opennms.test.excludedGroups "${WORKDIR}/pom.xml")"
+	FLAPPING_TESTS="$(git grep runFlappers | grep IfProfileValue | wc -l)"
 
-	if [ "$SUPPORTS_FLAPPING" -eq 0 ]; then
+	if [ "$FLAPPING_TESTS" -gt 0 ]; then
 		echo "This branch does not support separating out flapping tests.  Skipping."
 		exit 0
 	fi
@@ -84,9 +84,9 @@ case "$SMOKE_TEST_API_VERSION" in
 		set -u
 
 		RERUNS=2
-		if [ "$FLAPPING" = "true" ] && [ "$SUPPORTS_FLAPPING" -gt 0 ]; then
+		if [ "$FLAPPING" = "true" ]; then
 			RERUNS=0
-			EXTRA_ARGS+=('-Dopennms.test.excludedGroups=!org.opennms.core.test.junit.FlappingTests' '-Dopennms.test.groups=org.opennms.core.test.junit.FlappingTests' '-DrunFlappers=true')
+			EXTRA_ARGS+=('-DrunFlappers=true')
 		fi
 
 		cd "${WORKDIR}/opennms-source" || exit 1
