@@ -8,6 +8,35 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
 NUM_JOBS="$1"; shift
 JOB_INDEX="$1"; shift
+FLAPPING=false
+
+while getopts f OPT; do
+	case $OPT in
+		f) FLAPPING=true
+			;;
+		*)
+			;;
+	esac
+done
+
+if [ "$FLAPPING" = "true" ]; then
+	FLAPPING_TESTS="$(git grep runFlappers | grep IfProfileValue | wc -l)"
+
+	if [ "$FLAPPING_TESTS" -gt 0 ]; then
+		echo "This branch does not support separating out flapping tests.  Skipping."
+		exit 0
+	fi
+	echo "* Running flapping tests."
+else
+	echo "* Skipping flapping tests."
+fi
+
+export PATH="/opt/firefox:/usr/local/bin:$PATH"
+export PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
+
+if [ -x "${WORKDIR}/opennms-source/bin/javahome.pl" ]; then
+	JAVA_HOME="$("${WORKDIR}/opennms-source/bin/javahome.pl")"
+fi
 
 if [ -z "$JOB_INDEX" ]; then
 	echo "usage: $0 <workdir> <num-jobs> <job-index>"
@@ -102,15 +131,21 @@ case "$SMOKE_TEST_API_VERSION" in
 			./build-docker-images.sh || exit 1
 		cd "${WORKDIR}" || exit 1
 
-		EXTRA_ARGS=""
+		EXTRA_ARGS=()
 		set +u
 		# shellcheck disable=SC2154
 		if [ -n "${bamboo_capability_host_address}" ]; then
-			EXTRA_ARGS="-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}"
+			EXTRA_ARGS+=("-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}")
 		fi
 		set -u
 
-		cd opennms-source || exit 1
+		RERUNS=2
+		if [ "$FLAPPING" = "true" ]; then
+			RERUNS=0
+			EXTRA_ARGS+=('-DrunFlappers=true')
+		fi
+
+		cd "${WORKDIR}/opennms-source" || exit 1
 			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || exit 1
 			cd smoke-test || exit 1
 				# shellcheck disable=SC2086
@@ -121,12 +156,12 @@ case "$SMOKE_TEST_API_VERSION" in
 					--auto-servernum \
 					--listen-tcp \
 					../compile.pl \
-					-Dsurefire.rerunFailingTestsCount=2 \
-					-Dfailsafe.rerunFailingTestsCount=2 \
+					-Dsurefire.rerunFailingTestsCount="${RERUNS}" \
+					-Dfailsafe.rerunFailingTestsCount="${RERUNS}" \
 					-Dorg.opennms.smoketest.logLevel=INFO \
 					-Dtest.fork.count=2 \
 					-Dorg.opennms.smoketest.docker=true \
-					$EXTRA_ARGS \
+					"${EXTRA_ARGS[@]}" \
 					-Dsmoke=true \
 					$TESTS \
 					$ITS \
@@ -145,7 +180,7 @@ case "$SMOKE_TEST_API_VERSION" in
 			SHUNT_RPM="$(find debian-shunt -name debian-shunt-\*.noarch.rpm | sort -u | tail -n 1)"
 			sudo rpm -Uvh "$SHUNT_RPM" || :
 
-			sudo ./do-smoke-test.pl "${WORKDIR}"/opennms-source "${WORKDIR}"/rpms || exit 1
+			sudo ./do-smoke-test.pl "${WORKDIR}/opennms-source" "${WORKDIR}/rpms" || exit 1
 		cd ..
 		;;
 esac

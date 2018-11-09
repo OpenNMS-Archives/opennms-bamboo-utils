@@ -152,7 +152,7 @@ reset_postgresql() {
 	retry_sudo service postgresql restart || :
 
 	set +euo pipefail
-	psql -U opennms -c 'SELECT datname FROM pg_database' -Pformat=unaligned -Pfooter=off 2>/dev/null | grep -E '^opennms_(test|it)_' >/tmp/$$.databases
+	psql -U opennms -c 'SELECT datname FROM pg_database' -Pformat=unaligned -Pfooter=off 2>/dev/null | grep -E '^opennms' >/tmp/$$.databases
 	set -euo pipefail
 
 	(while read -r DB; do
@@ -161,6 +161,8 @@ reset_postgresql() {
 	done) < /tmp/$$.databases
 	echo "- finished cleaning up postgresql"
 	rm /tmp/$$.databases
+	/usr/bin/createdb -U opennms -E UNICODE opennms
+	/usr/sbin/install_iplike.sh
 }
 
 reset_docker() {
