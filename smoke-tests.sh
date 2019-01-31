@@ -10,14 +10,31 @@ NUM_JOBS="$1"; shift
 JOB_INDEX="$1"; shift
 FLAPPING=false
 
-while getopts f OPT; do
+while getopts fhj:i: OPT; do
 	case $OPT in
 		f) FLAPPING=true
+			;;
+		h) HELP=true
+			;;
+		j) NUM_JOBS="$OPT"
+			;;
+		i) JOB_INDEX="$OPT"
 			;;
 		*)
 			;;
 	esac
 done
+
+if [ "$HELP" = "true" ]; then
+	printf 'usage: $0 [options] <workdir>\n'
+	printf '\n'
+	printf '	-h	this help\n'
+	printf '	-f	run flapping tests\n'
+	printf '	-j <N>	split into N jobs\n'
+	printf '	-i <I>	run job index I (aa, ab, etc.)\n'
+	printf '\n'
+	exit 0
+fi
 
 if [ "$FLAPPING" = "true" ]; then
 	FLAPPING_TESTS="$(git grep runFlappers | grep IfProfileValue | wc -l)"
@@ -39,8 +56,6 @@ if [ -x "${WORKDIR}/opennms-source/bin/javahome.pl" ]; then
 fi
 
 if [ -z "$JOB_INDEX" ]; then
-	echo "usage: $0 <workdir> <num-jobs> <job-index>"
-	echo ""
 	echo "WARNING: num-jobs or job-index not specified.  Building everything."
 	echo ""
 	NUM_JOBS=1
