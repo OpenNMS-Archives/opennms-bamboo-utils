@@ -103,7 +103,7 @@ case "$SMOKE_TEST_API_VERSION" in
 					-Dsurefire.rerunFailingTestsCount="${RERUNS}" \
 					-Dfailsafe.rerunFailingTestsCount="${RERUNS}" \
 					-Dorg.opennms.smoketest.logLevel=INFO \
-					-Dtest.fork.count=2 \
+					-Dtest.fork.count=1 \
 					-Dorg.opennms.smoketest.docker=true \
 					"${EXTRA_ARGS[@]}" \
 					-Dsmoke=true \
