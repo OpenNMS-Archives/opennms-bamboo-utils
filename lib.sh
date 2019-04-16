@@ -283,6 +283,10 @@ clean_node_directories() {
 	retry_sudo rm -rf "${_workdir}/node_modules"
 }
 
+clean_tmp() {
+	retry_sudo find /tmp -name opennms.\* -o -name \*.javabins -o -name com.vaadin.\* -exec rm -rf {} \;
+}
+
 ### Filesystem/Path Admin ###
 # usage: fix_ownership $WORKDIR [$file_to_match]
 # If file_to_match is not passed, attempts to use the bamboo uid/gid.

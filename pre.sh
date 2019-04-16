@@ -14,6 +14,7 @@ clean_m2_repository
 clean_maven_target_directories "${WORKDIR}"
 clean_node_directories "${WORKDIR}"
 clean_opennms
+clean_tmp
 reset_postgresql
 reset_docker
 fix_ownership "${WORKDIR}" || :
