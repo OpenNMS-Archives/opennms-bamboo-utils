@@ -18,5 +18,5 @@ export BAMBOO_BUILD_NUMBER="${bamboo_buildNumber}"
 export BAMBOO_WORKING_DIRECTORY="${bamboo_working_directory}"
 
 if [ -z "$MAVEN_OPTS" ]; then
-	MAVEN_OPTS="-Xmx2048m -XX:ReservedCodeCacheSize=512m"
+	MAVEN_OPTS="-Xmx4g -XX:ReservedCodeCacheSize=1g"
 fi
