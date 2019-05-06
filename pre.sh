@@ -10,7 +10,6 @@ increase_limits || :
 stop_compiles
 stop_firefox
 stop_opennms
-clean_m2_repository
 clean_maven_target_directories "${WORKDIR}"
 clean_node_directories "${WORKDIR}"
 clean_opennms
