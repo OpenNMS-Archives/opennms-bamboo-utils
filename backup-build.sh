@@ -26,4 +26,7 @@ if [ -d "REPODIR" ]; then
 	pushd "$REPODIR" || exit 1
 		tar -cvzf "$OUTPUTDIR/repo.tar.gz" .
 	popd || exit 1
+else
+	echo "repository $REPODIR does not exist"
+	ls -1 "$HOME/.m2"
 fi
