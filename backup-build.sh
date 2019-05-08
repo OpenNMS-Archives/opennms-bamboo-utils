@@ -22,7 +22,7 @@ pushd "$WORKDIR" || exit 1
 	find . -type d -name target | tar -T - -cvzf "$OUTPUTDIR/target.tar.gz"
 popd || exit 1
 
-if [ -d "REPODIR" ]; then
+if [ -d "$REPODIR" ]; then
 	pushd "$REPODIR" || exit 1
 		tar -cvzf "$OUTPUTDIR/repo.tar.gz" .
 	popd || exit 1
