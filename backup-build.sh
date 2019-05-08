@@ -19,11 +19,13 @@ fi
 mkdir -p "$OUTPUTDIR"
 
 pushd "$WORKDIR" || exit 1
+	echo "* packing target directories to $OUTPUTDIR/target.tar.gz"
 	find . -type d -name target | tar -T - -cvzf "$OUTPUTDIR/target.tar.gz"
 popd || exit 1
 
 if [ -d "$REPODIR" ]; then
 	pushd "$REPODIR" || exit 1
+		echo "* packing $REPODIR to $OUTPUTDIR/repo.tar.gz"
 		tar -cvzf "$OUTPUTDIR/repo.tar.gz" .
 	popd || exit 1
 else

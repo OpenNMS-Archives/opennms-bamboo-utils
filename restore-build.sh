@@ -24,12 +24,14 @@ fi
 
 mkdir -p "$WORKDIR"
 pushd "$WORKDIR" || exit 1
+	echo "* unpacking target.tar.gz in $WORKDIR"
 	tar -xvzf "$BACKUPDIR/target.tar.gz"
 popd || exit 1
 
 if [ -e "$BACKUPDIR/repo.tar.gz" ]; then
 	mkdir -p "$REPODIR"
 	pushd "$REPODIR" || exit 1
+		echo "* unpacking repo.tar.gz in $BACKUPDIR"
 		tar -xvzf "$BACKUPDIR/repo.tar.gz"
 	popd || exit 1
 else
