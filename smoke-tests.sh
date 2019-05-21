@@ -3,6 +3,8 @@
 MYDIR=$(dirname "$0")
 MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
+GITHUB_BUILD_CONTEXT="smoke"
+
 # shellcheck source=lib.sh disable=SC1091
 . "${MYDIR}/lib.sh"
 
@@ -20,7 +22,7 @@ while getopts f OPT; do
 done
 
 if [ "$FLAPPING" = "true" ]; then
-	FLAPPING_TESTS="$(git grep runFlappers | grep IfProfileValue | wc -l)"
+	FLAPPING_TESTS="$(git grep runFlappers | grep -c IfProfileValue)"
 
 	if [ "$FLAPPING_TESTS" -gt 0 ]; then
 		echo "This branch does not support separating out flapping tests.  Skipping."
@@ -71,13 +73,14 @@ case "$SMOKE_TEST_API_VERSION" in
 		mv "${DOCKERDIR}"/opennms/rpms/*-minion-* "${DOCKERDIR}"/minion/rpms/ || :
 		mv "${DOCKERDIR}"/opennms/rpms/*-sentinel-* "${DOCKERDIR}"/sentinel/rpms/ || :
 
+		update_github_status "${WORKDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "building docker images"
 		cd "${DOCKERDIR}" || exit 1
 			./build-docker-images.sh || exit 1
 		cd "${WORKDIR}" || exit 1
 
 		EXTRA_ARGS=()
-		# shellcheck disable=SC2154
 		set +u
+		# shellcheck disable=SC2154
 		if [ -n "${bamboo_capability_host_address}" ]; then
 			EXTRA_ARGS+=("-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}")
 		fi
@@ -90,7 +93,8 @@ case "$SMOKE_TEST_API_VERSION" in
 		fi
 
 		cd "${WORKDIR}/opennms-source" || exit 1
-			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || exit 1
+			update_github_status "${WORKDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "compiling v2 smoke tests"
+			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || update_github_status "${WORKDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to compile v2 smoke tests"
 			cd smoke-test || exit 1
 				# shellcheck disable=SC2086
 				xvfb-run \
@@ -107,7 +111,7 @@ case "$SMOKE_TEST_API_VERSION" in
 					-Dorg.opennms.smoketest.docker=true \
 					"${EXTRA_ARGS[@]}" \
 					-Dsmoke=true \
-					-t || exit 1
+					-t || update_github_status "${WORKDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
 			cd ..
 		cd ..
 		;;
@@ -118,7 +122,10 @@ case "$SMOKE_TEST_API_VERSION" in
 			SHUNT_RPM="$(find debian-shunt -name debian-shunt-\*.noarch.rpm | sort -u | tail -n 1)"
 			sudo rpm -Uvh "$SHUNT_RPM" || :
 
-			sudo ./do-smoke-test.pl "${WORKDIR}/opennms-source" "${WORKDIR}/rpms" || exit 1
+			update_github_status "${WORKDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "running v1 smoke tests"
+			sudo ./do-smoke-test.pl "${WORKDIR}/opennms-source" "${WORKDIR}/rpms" || update_github_status "${WORKDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v1 smoke tests failed"
 		cd ..
 		;;
 esac
+
+update_github_status "${WORKDIR}" "success" "$GITHUB_BUILD_CONTEXT" "smoke tests complete"

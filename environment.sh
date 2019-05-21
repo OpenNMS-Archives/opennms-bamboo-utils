@@ -1,4 +1,5 @@
 #!/bin/bash
+set +u
 if [ -z "${bamboo_buildKey}" ]; then
 	echo "WARNING: \$bamboo_buildKey is unset.  Setting it to 'cli' but this is probably wrong." >&2
 	export bamboo_buildKey="cli"
@@ -20,3 +21,4 @@ export BAMBOO_WORKING_DIRECTORY="${bamboo_working_directory}"
 if [ -z "$MAVEN_OPTS" ]; then
 	MAVEN_OPTS="-Xmx4g -XX:ReservedCodeCacheSize=1g"
 fi
+set -u

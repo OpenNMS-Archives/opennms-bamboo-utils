@@ -17,6 +17,8 @@ fi
 # shellcheck source=environment.sh disable=SC1091
 . "${MYDIR}/environment.sh"
 
+GITHUB_LAST_STATE=""
+
 set -euo pipefail
 
 ### SYSTEM SCRIPTS ###
@@ -190,6 +192,73 @@ END
 
 
 ### GIT and Maven ###
+update_github_status() {
+	local _workdir
+	local _state
+	local _context
+	local _description
+
+	local _url
+	local _hash
+
+	_workdir="$1"; shift
+	_state="$1"; shift
+	_context="$1"; shift
+	_description="$1"; shift
+
+	set +u
+	# shellcheck disable=SC2154
+	_url="${bamboo_buildResultsUrl}"
+
+	if [ -z "$_url" ]; then
+		echo "ERROR: \$bamboo_buildResultsUrl is not set." >&2
+		return 1
+	fi
+	if [ -z "${GITHUB_AUTH_TOKEN}" ]; then
+		echo "ERROR: \$GITHUB_AUTH_TOKEN is not set." >&2
+		return 1
+	fi
+
+	_hash="$(get_git_hash "$_workdir")"
+
+	read -r -d '' __github_status_DATA <<END || true
+{
+	"state": "${_state}",
+	"context": "${_context}",
+	"description": "${_description}",
+	"target_url": "${_url}"
+}
+END
+	set -u
+
+	GITHUB_LAST_STATE="${_state}"
+
+	curl \
+		--silent \
+		--show-error \
+		-H "Authorization: token ${GITHUB_AUTH_TOKEN}" \
+		--request POST \
+		--data "$__github_status_DATA" \
+		"https://api.github.com/repos/OpenNMS/opennms/statuses/${_hash}" \
+		> /dev/null
+
+	case "${_state}" in
+		success|pending)
+			return 0
+			;;
+		failure)
+			return 1
+			;;
+		error)
+			return 2
+			;;
+		*)
+			echo "WARNING: Unhandled state: '${_state}'" >&2
+			return 3
+			;;
+	esac
+}
+
 get_branch_name() {
 	local _workdir
 	local _branch_name
@@ -349,3 +418,28 @@ warn_ownership() {
 	fi
 	return "$COUNT"
 }
+
+github_trap_exit() {
+	local _ret="$?"
+	set +u
+	if [ -n "$GITHUB_AUTH_TOKEN" ] && [ "$_ret" -gt 0 ]; then
+		local _state="failure"
+		local _message="unknown failure"
+		if [ "$_ret" -gt 1 ]; then
+			_state="error"
+			_message="unknown error"
+		fi
+		if [ "${_state}" != "${GITHUB_LAST_STATE}" ]; then
+			update_github_status "${WORKDIR}" "${_state}" "${BUILD_CONTEXT}" "${_message}" || :
+		fi
+	fi
+	set -u
+}
+
+
+set +u
+if [ -n "${GITHUB_BUILD_CONTEXT}" ]; then
+	trap github_trap_exit EXIT
+	update_github_status "${WORKDIR}" "pending" "${BUILD_CONTEXT}" "starting ${BUILD_CONTEXT}" || :
+fi
+set -u
