@@ -422,7 +422,7 @@ warn_ownership() {
 github_trap_exit() {
 	local _ret="$?"
 	set +u
-	if [ -n "$GITHUB_AUTH_TOKEN" ] && [ "$_ret" -gt 0 ]; then
+	if [ "$_ret" -gt 0 ]; then
 		local _state="failure"
 		local _message="unknown failure"
 		if [ "$_ret" -gt 1 ]; then
@@ -438,7 +438,7 @@ github_trap_exit() {
 
 
 set +u
-if [ -n "${GITHUB_BUILD_CONTEXT}" ]; then
+if [ -n "${GITHUB_AUTH_TOKEN}" ] && [ -n "${GITHUB_BUILD_CONTEXT}" ]; then
 	trap github_trap_exit EXIT
 	update_github_status "${WORKDIR}" "pending" "${BUILD_CONTEXT}" "starting ${BUILD_CONTEXT}" || :
 fi
