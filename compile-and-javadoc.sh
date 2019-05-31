@@ -9,6 +9,8 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 pushd "${WORKDIR}" || exit 1
 
 	"${MYDIR}/compile.sh" "${WORKDIR}"
+	# first bamboo.pl call will have already cleaned
+	export SKIP_CLEAN=1
 	"${MYDIR}/javadoc.sh" "${WORKDIR}"
 
 popd || exit 1

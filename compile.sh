@@ -12,6 +12,7 @@ pushd "${WORKDIR}" || exit 1
 
 	"${MYDIR}/compile-only.sh" "${WORKDIR}"
 
+	export SKIP_CLEAN=1
 	update_github_status "${WORKDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "compiling assemblies"
 	pushd opennms-full-assembly || exit 1
 		"${WORKDIR}/bin/bamboo.pl" -Prun-expensive-tasks "${COMPILE_OPTIONS[@]}" "${SKIP_TESTS[@]}" -v install || update_github_status "${WORKDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "assembly compile failed"
