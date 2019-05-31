@@ -16,17 +16,21 @@ if [ -z "$BACKUPDIR" ]; then
 	exit 1
 fi
 
-if [ ! -e "$BACKUPDIR/target.tar.gz" ]; then
-	echo "ERROR: no target.tar.gz file in $BACKUPDIR"
+if [ ! -e "$BACKUPDIR/target.tar.gz" ] && [ ! -e "$BACKUPDIR/repo.tar.gz" ]; then
+	echo "ERROR: target.tar.gz and repo.tar.gz not found"
 	echo ""
 	exit 1
 fi
 
-mkdir -p "$WORKDIR"
-pushd "$WORKDIR" || exit 1
-	echo "* unpacking target.tar.gz in $WORKDIR"
-	tar -xzf "$BACKUPDIR/target.tar.gz"
-popd || exit 1
+if [ -e "$BACKUPDIR/target.tar.gz" ]; then
+	mkdir -p "$WORKDIR"
+	pushd "$WORKDIR" || exit 1
+		echo "* unpacking target.tar.gz in $WORKDIR"
+		tar -xzf "$BACKUPDIR/target.tar.gz"
+	popd || exit 1
+else
+	echo "WARNING: no target.tar.gz file in $BACKUPDIR"
+fi
 
 if [ -e "$BACKUPDIR/repo.tar.gz" ]; then
 	mkdir -p "$REPODIR"
