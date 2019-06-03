@@ -52,6 +52,9 @@ echo "RPM Version: $RPM_VERSION"
 ls -1 "${WORKDIR}"/rpms/*
 
 SMOKE_TEST_API_VERSION="$(grep -C1 org.opennms.smoke.test-api "${WORKDIR}/opennms-source/smoke-test/pom.xml"  | grep '<version>' | sed -e 's,.*<version>,,' -e 's,</version>,,' -e 's,-SNAPSHOT$,,')"
+
+set -e
+
 case "$SMOKE_TEST_API_VERSION" in
 	"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9")
 		DOCKERDIR="${WORKDIR}/opennms-system-test-api/docker"
@@ -75,7 +78,7 @@ case "$SMOKE_TEST_API_VERSION" in
 
 		update_github_status "${WORKDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "building docker images"
 		cd "${DOCKERDIR}" || exit 1
-			./build-docker-images.sh || exit 1
+			./build-docker-images.sh || update_github_status "${WORKDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to build docker images"
 		cd "${WORKDIR}" || exit 1
 
 		EXTRA_ARGS=()
