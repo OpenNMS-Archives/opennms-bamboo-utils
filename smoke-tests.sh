@@ -107,6 +107,7 @@ case "$SMOKE_TEST_API_VERSION" in
 					--auto-servernum \
 					--listen-tcp \
 					../compile.pl \
+					-Pbamboo \
 					-Dsurefire.rerunFailingTestsCount="${RERUNS}" \
 					-Dfailsafe.rerunFailingTestsCount="${RERUNS}" \
 					-Dorg.opennms.smoketest.logLevel=INFO \
