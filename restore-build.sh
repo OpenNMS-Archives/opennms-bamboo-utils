@@ -16,28 +16,33 @@ if [ -z "$BACKUPDIR" ]; then
 	exit 1
 fi
 
-if [ ! -e "$BACKUPDIR/target.tar.gz" ] && [ ! -e "$BACKUPDIR/repo.tar.gz" ]; then
-	echo "ERROR: target.tar.gz and repo.tar.gz not found"
+TARGETFILES="$(find "$BACKUPDIR" -name 'target.tar.gz*')"
+REPOFILES="$(find "$BACKUPDIR" -name 'repo.tar.gz*')"
+
+if [ -z "$TARGETFILES" ] && [ -z "$REPOFILES" ]; then
+	echo "ERROR: target.tar.gz* and repo.tar.gz* not found"
 	echo ""
 	exit 1
 fi
 
-if [ -e "$BACKUPDIR/target.tar.gz" ]; then
+if [ -n "$TARGETFILES" ]; then
 	mkdir -p "$WORKDIR"
 	pushd "$WORKDIR" || exit 1
-		echo "* unpacking target.tar.gz in $WORKDIR"
-		tar -xzf "$BACKUPDIR/target.tar.gz"
+		echo "* unpacking target.tar.gz* in $WORKDIR"
+		# shellcheck disable=SC2002
+		find "$BACKUPDIR" -type f -name 'target.tar.gz*' | sort | xargs cat | tar -xzf -
 	popd || exit 1
 else
-	echo "WARNING: no target.tar.gz file in $BACKUPDIR"
+	echo "WARNING: no target.tar.gz* file(s) in $BACKUPDIR"
 fi
 
-if [ -e "$BACKUPDIR/repo.tar.gz" ]; then
+if [ -n "$REPOFILES" ]; then
 	mkdir -p "$REPODIR"
 	pushd "$REPODIR" || exit 1
-		echo "* unpacking repo.tar.gz in $BACKUPDIR"
-		tar -xzf "$BACKUPDIR/repo.tar.gz"
+		echo "* unpacking repo.tar.gz* in $BACKUPDIR"
+		# shellcheck disable=SC2002
+		find "$BACKUPDIR" -type f -name 'repo.tar.gz*' | sort | xargs cat | tar -xzf -
 	popd || exit 1
 else
-	echo "WARNING: no repo.tar.gz file in $BACKUPDIR"
+	echo "WARNING: no repo.tar.gz* file(s) in $BACKUPDIR"
 fi
