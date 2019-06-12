@@ -80,7 +80,7 @@ if [ "$FLAPPING" = "true" ]; then
 	DO_SMOKE+=('-DrunFlappers=true')
 fi
 
-DO_SMOKE+=("-Dsurefire.rerunFailingTestsCount=${RERUNS}" "-Dfailsafe.rerunFailingTestsCount=${RERUNS}" install verify)
+DO_SMOKE+=("-Dsurefire.rerunFailingTestsCount=${RERUNS}" "-Dfailsafe.rerunFailingTestsCount=${RERUNS}")
 
 pushd "${OPENNMS_SOURCEDIR}"
 
@@ -99,7 +99,10 @@ case "$SMOKE_TEST_API_VERSION" in
 		update_github_status "${OPENNMS_SOURCEDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "compiling v2 smoke tests"
 		"${DO_COMPILE[@]}" || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to compile v2 smoke tests"
 		pushd smoke-test || exit 1
-			"${DO_SMOKE[@]}" || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
+			"${DO_SMOKE[@]}" \
+				"-Dtest.fork.count=2" \
+				install \
+				verify || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
 		popd || exit 1
 		;;
 	"2"|"3"|"4"|"5"|"6"|"7")
@@ -139,7 +142,9 @@ case "$SMOKE_TEST_API_VERSION" in
 					--auto-servernum \
 					--listen-tcp \
 					"${DO_SMOKE[@]}" \
-					-Dtest.fork.count=1 || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
+					-Dtest.fork.count=1 \
+					install \
+					verify || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
 			cd ..
 		cd ..
 		;;
