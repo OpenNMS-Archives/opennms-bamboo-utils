@@ -35,13 +35,14 @@ fi
 
 export PATH="/opt/firefox:/usr/local/bin:$PATH"
 export PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
+export OPENNMS_SOURCEDIR="${WORKDIR}/opennms-source"
 
 if [ -x "${WORKDIR}/opennms-source/bin/javahome.pl" ]; then
-	JAVA_HOME="$("${WORKDIR}/opennms-source/bin/javahome.pl")"
+	JAVA_HOME="$("${OPENNMS_SOURCEDIR}/bin/javahome.pl")"
 fi
 export JAVA_HOME
 
-CORE_RPM="$(find rpms -name opennms-core-\*.rpm -o -name meridian-core-\*.rpm)"
+CORE_RPM="$(find "${WORKDIR}/rpms" -name opennms-core-\*.rpm -o -name meridian-core-\*.rpm)"
 if [ "$(echo "$CORE_RPM" | wc -w)" -ne 1 ]; then
 	echo "* ERROR: found more than one core RPM: $CORE_RPM"
 	exit 1
@@ -51,12 +52,57 @@ RPM_VERSION="$(rpm -q --queryformat='%{version}-%{release}\n' -p "${CORE_RPM}")"
 echo "RPM Version: $RPM_VERSION"
 ls -1 "${WORKDIR}"/rpms/*
 
-SMOKE_TEST_API_VERSION="$(grep -C1 org.opennms.smoke.test-api "${WORKDIR}/opennms-source/smoke-test/pom.xml"  | grep '<version>' | sed -e 's,.*<version>,,' -e 's,</version>,,' -e 's,-SNAPSHOT$,,')"
+SMOKE_TEST_API_VERSION="$(grep -C1 org.opennms.smoke.test-api "${OPENNMS_SOURCEDIR}/smoke-test/pom.xml"  | grep '<version>' | sed -e 's,.*<version>,,' -e 's,</version>,,' -e 's,-SNAPSHOT$,,')"
+
+TEST_CONTAINERS="$(grep -c org.testcontainers "${OPENNMS_SOURCEDIR}/smoke-test/pom.xml")"
+
+if [ "$TEST_CONTAINERS" -gt 0 ]; then
+	SMOKE_TEST_API_VERSION=9999
+fi
+
 
 set -e
 
+declare -a DO_COMPILE=("${OPENNMS_SOURCEDIR}/compile.pl" "-DskipTests=true" "-DskipITs=true" "-Dmaven.test.skip.exec=true" "-Dsmoke=true" --projects org.opennms:smoke-test --also-make install)
+declare -a DO_SMOKE=("${OPENNMS_SOURCEDIR}/compile.pl" -t -Pbamboo "-Dsmoke=true" "-Dorg.opennms.smoketest.logLevel=INFO" "-Dorg.opennms.smoketest.docker=true")
+
+
+set +u
+# shellcheck disable=SC2154
+if [ -n "${bamboo_capability_host_address}" ]; then
+	DO_SMOKE+=("-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}")
+fi
+set -u
+
+RERUNS=2
+if [ "$FLAPPING" = "true" ]; then
+	RERUNS=0
+	DO_SMOKE+=('-DrunFlappers=true')
+fi
+
+DO_SMOKE+=("-Dsurefire.rerunFailingTestsCount=${RERUNS}" "-Dfailsafe.rerunFailingTestsCount=${RERUNS}" install verify)
+
+pushd "${OPENNMS_SOURCEDIR}"
+
 case "$SMOKE_TEST_API_VERSION" in
-	"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9")
+	9999)
+		mkdir -p "${OPENNMS_SOURCEDIR}/target/rpm/RPMS/noarch"
+		mv "${WORKDIR}"/rpms/*.rpm "${OPENNMS_SOURCEDIR}/target/rpm/RPMS/noarch/"
+		for FILE in "${OPENNMS_SOURCEDIR}/opennms-container"/*/build_container_image.sh; do
+			DIR="$(dirname "$FILE")"
+			pushd "$DIR" || exit 1
+				CONTAINER="$(basename "$DIR")"
+				update_github_status "${OPENNMS_SOURCEDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "building docker image: ${CONTAINER}"
+				./build_container_image.sh || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to build docker image ($CONTAINER)"
+			popd || exit 1
+		done
+		update_github_status "${OPENNMS_SOURCEDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "compiling v2 smoke tests"
+		"${DO_COMPILE[@]}" || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to compile v2 smoke tests"
+		pushd smoke-test || exit 1
+			"${DO_SMOKE[@]}" || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
+		popd || exit 1
+		;;
+	"2"|"3"|"4"|"5"|"6"|"7")
 		DOCKERDIR="${WORKDIR}/opennms-system-test-api/docker"
 
 		# this branch is using the new-style dockerized smoke tests
@@ -76,28 +122,14 @@ case "$SMOKE_TEST_API_VERSION" in
 		mv "${DOCKERDIR}"/opennms/rpms/*-minion-* "${DOCKERDIR}"/minion/rpms/ || :
 		mv "${DOCKERDIR}"/opennms/rpms/*-sentinel-* "${DOCKERDIR}"/sentinel/rpms/ || :
 
-		update_github_status "${WORKDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "building docker images"
+		update_github_status "${OPENNMS_SOURCEDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "building docker images"
 		cd "${DOCKERDIR}" || exit 1
-			./build-docker-images.sh || update_github_status "${WORKDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to build docker images"
+			./build-docker-images.sh || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to build docker images"
 		cd "${WORKDIR}" || exit 1
 
-		EXTRA_ARGS=()
-		set +u
-		# shellcheck disable=SC2154
-		if [ -n "${bamboo_capability_host_address}" ]; then
-			EXTRA_ARGS+=("-Dorg.opennms.advertised-host-address=${bamboo_capability_host_address}")
-		fi
-		set -u
-
-		RERUNS=2
-		if [ "$FLAPPING" = "true" ]; then
-			RERUNS=0
-			EXTRA_ARGS+=('-DrunFlappers=true')
-		fi
-
-		cd "${WORKDIR}/opennms-source" || exit 1
-			update_github_status "${WORKDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "compiling v2 smoke tests"
-			./compile.pl -Dmaven.test.skip.exec=true -Dsmoke=true --projects org.opennms:smoke-test --also-make install || update_github_status "${WORKDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to compile v2 smoke tests"
+		cd "${OPENNMS_SOURCEDIR}" || exit 1
+			update_github_status "${OPENNMS_SOURCEDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "compiling v2 smoke tests"
+			"${DO_COMPILE[@]}" || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to compile v2 smoke tests"
 			cd smoke-test || exit 1
 				# shellcheck disable=SC2086
 				xvfb-run \
@@ -106,16 +138,8 @@ case "$SMOKE_TEST_API_VERSION" in
 					--server-num=80 \
 					--auto-servernum \
 					--listen-tcp \
-					../compile.pl \
-					-Pbamboo \
-					-Dsurefire.rerunFailingTestsCount="${RERUNS}" \
-					-Dfailsafe.rerunFailingTestsCount="${RERUNS}" \
-					-Dorg.opennms.smoketest.logLevel=INFO \
-					-Dtest.fork.count=1 \
-					-Dorg.opennms.smoketest.docker=true \
-					"${EXTRA_ARGS[@]}" \
-					-Dsmoke=true \
-					-t || update_github_status "${WORKDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
+					"${DO_SMOKE[@]}" \
+					-Dtest.fork.count=1 || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
 			cd ..
 		cd ..
 		;;
@@ -126,10 +150,10 @@ case "$SMOKE_TEST_API_VERSION" in
 			SHUNT_RPM="$(find debian-shunt -name debian-shunt-\*.noarch.rpm | sort -u | tail -n 1)"
 			sudo rpm -Uvh "$SHUNT_RPM" || :
 
-			update_github_status "${WORKDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "running v1 smoke tests"
-			sudo ./do-smoke-test.pl "${WORKDIR}/opennms-source" "${WORKDIR}/rpms" || update_github_status "${WORKDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v1 smoke tests failed"
+			update_github_status "${OPENNMS_SOURCEDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "running v1 smoke tests"
+			sudo ./do-smoke-test.pl "${OPENNMS_SOURCEDIR}" "${WORKDIR}/rpms" || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v1 smoke tests failed"
 		cd ..
 		;;
 esac
 
-update_github_status "${WORKDIR}" "success" "$GITHUB_BUILD_CONTEXT" "smoke tests complete"
+update_github_status "${OPENNMS_SOURCEDIR}" "success" "$GITHUB_BUILD_CONTEXT" "smoke tests complete"
