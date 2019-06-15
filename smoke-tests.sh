@@ -101,6 +101,7 @@ case "$SMOKE_TEST_API_VERSION" in
 		pushd smoke-test || exit 1
 			"${DO_SMOKE[@]}" \
 				"-Dtest.fork.count=1" \
+				"-Duser.timezone=UTC" \
 				install \
 				verify || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
 		popd || exit 1
