@@ -8,7 +8,7 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
 OUTPUTDIR="$1"; shift
 # shellcheck disable=SC2154
-REPODIR="$HOME/.m2/repository-${bamboo_buildKey}"
+REPODIR="$HOME/.m2/repository-${bamboo_planKey}"
 
 SPLIT_SIZE="250m"
 

@@ -8,7 +8,7 @@ MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
 BACKUPDIR="$1"; shift
 # shellcheck disable=SC2154
-REPODIR="$HOME/.m2/repository-${bamboo_buildKey}"
+REPODIR="$HOME/.m2/repository-${bamboo_planKey}"
 
 if [ -z "$BACKUPDIR" ]; then
 	echo "usage: $0 <opennms-source-directory> <backup-file-directory>"
