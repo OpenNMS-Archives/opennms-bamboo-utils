@@ -16,6 +16,8 @@ if [ -z "$BACKUPDIR" ]; then
 	exit 1
 fi
 
+clean_m2_repository
+
 TARGETFILES="$(find "$BACKUPDIR" -name 'target.tar.gz*')"
 REPOFILES="$(find "$BACKUPDIR" -name 'repo.tar.gz*')"
 
