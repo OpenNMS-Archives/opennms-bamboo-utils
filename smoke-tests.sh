@@ -80,6 +80,10 @@ if [ "$FLAPPING" = "true" ]; then
 	DO_SMOKE+=('-DrunFlappers=true')
 fi
 
+if [ "$SMOKE_TEST_API_VERSION" = "9999" ]; then
+	RERUNS=0
+fi
+
 DO_SMOKE+=("-Dsurefire.rerunFailingTestsCount=${RERUNS}" "-Dfailsafe.rerunFailingTestsCount=${RERUNS}")
 
 pushd "${OPENNMS_SOURCEDIR}"
@@ -100,7 +104,7 @@ case "$SMOKE_TEST_API_VERSION" in
 		"${DO_COMPILE[@]}" || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to compile v2 smoke tests"
 		pushd smoke-test || exit 1
 			"${DO_SMOKE[@]}" \
-				"-Dtest.fork.count=1" \
+				"-Dtest.fork.count=2" \
 				"-Duser.timezone=UTC" \
 				install \
 				verify || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
