@@ -154,7 +154,7 @@ case "$SMOKE_TEST_API_VERSION" in
 		cd ..
 		;;
 	*)
-		cd smoke || exit 1
+		cd "${WORKDIR}/smoke" || exit 1
 			# this branch has the old-style smoke tests
 			echo "* Did NOT find Dockerized smoke tests"
 			SHUNT_RPM="$(find debian-shunt -name debian-shunt-\*.noarch.rpm | sort -u | tail -n 1)"
