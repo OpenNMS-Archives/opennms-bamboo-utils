@@ -84,7 +84,7 @@ if [ "$SMOKE_TEST_API_VERSION" = "9999" ]; then
 	RERUNS=0
 fi
 
-DO_SMOKE+=("-Dsurefire.rerunFailingTestsCount=${RERUNS}" "-Dfailsafe.rerunFailingTestsCount=${RERUNS}")
+DO_SMOKE+=("-Dsurefire.rerunFailingTestsCount=${RERUNS}" "-Dfailsafe.rerunFailingTestsCount=${RERUNS}" "-Dci.rerunFailingTestsCount=${RERUNS}")
 
 pushd "${OPENNMS_SOURCEDIR}"
 
