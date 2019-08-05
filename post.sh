@@ -13,4 +13,3 @@ stop_firefox
 reset_postgresql
 reset_docker
 fix_ownership "${WORKDIR}"
-consolidate_junit_output "${WORKDIR}"
