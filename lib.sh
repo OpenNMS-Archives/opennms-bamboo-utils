@@ -419,6 +419,22 @@ warn_ownership() {
 	return "$COUNT"
 }
 
+consolidate_junit_output() {
+	local _workdir
+
+	_workdir="$1"; shift
+	if [ -z "$_workdir" ]; then
+		echo 'You must specify a path which contains junit test output!'
+		exit 1
+	fi
+	mkdir -p "${_workdir}/target/surefire-reports/"
+	find "${_workdir}" -type d -a '(' -name surefire-\* -o -name failsafe-\* ')' \
+		| grep -v -E "^${_workdir}/target/surefire-reports/?\$" \
+		| while read -r DIR; do
+			find "$DIR" -type f -a '(' -name 'TEST-*.xml' -o -name '*.txt' ')' -exec mv -f '{}' "${_workdir}/target/surefire-reports/" \;
+		done
+}
+
 github_trap_exit() {
 	local _ret="$?"
 	set +u

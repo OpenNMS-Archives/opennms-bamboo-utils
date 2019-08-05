@@ -3,7 +3,7 @@
 MYDIR=$(dirname "$0")
 MYDIR=$(cd "$MYDIR" || exit 1; pwd)
 
-# shellcheck source=lib.sh
+# shellcheck source=lib.sh disable=SC1091
 . "${MYDIR}/lib.sh"
 
 stop_compiles
@@ -13,3 +13,4 @@ stop_firefox
 reset_postgresql
 reset_docker
 fix_ownership "${WORKDIR}"
+consolidate_junit_output "${WORKDIR}"
