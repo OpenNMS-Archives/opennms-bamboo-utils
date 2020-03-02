@@ -169,15 +169,21 @@ reset_postgresql() {
 
 reset_docker() {
 	echo "- killing and removing existing Docker containers..."
+	local docker_running
 	set +eo pipefail
+
 	# shellcheck disable=SC2046
 	# stop all running docker containers
-	(docker kill $(docker ps --no-trunc -a -q)) 2>/dev/null || :
+	docker_running="$(docker ps --no-trunc -a -q)"
+	if [ -n "${docker_running}" ]; then
+		# shellcheck disable=SC2086
+		docker kill ${docker_running} 2>/dev/null || :
+	fi
 
 	if [ -e /var/run/docker.sock ]; then
 		cat <<END >/tmp/docker-gc-exclude.txt
-opennms/*
-stests/*
+.*kafka.*:.*
+.*elasticsearch.*:.*
 END
 		# garbage-collect old docker containers and images
 		(docker run -v /tmp/docker-gc-exclude.txt:/tmp/docker-gc-exclude.txt -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc env MINIMUM_IMAGES_TO_SAVE=1 EXCLUDE_FROM_GC=/tmp/docker-gc-exclude.txt /docker-gc) 2>/dev/null || :
@@ -357,6 +363,112 @@ clean_tmp() {
 }
 
 ### Filesystem/Path Admin ###
+
+get_classes() {
+	local _workdir
+	local _outputdir
+	local _suffix
+	local _exclude
+
+	local _workfile
+	local _outputfile
+
+	set +u
+	_workdir="$1"; shift
+	_outputdir="$1"; shift
+	_suffix="$1"; shift
+	if [ -n "$1" ]; then
+		_exclude="$1"
+	else
+		_exclude=""
+	fi
+	set -u
+
+	(
+		set -e
+		set +o pipefail
+
+		_workfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')-files.txt"
+		_outputfile="${_outputdir}/$(echo "${_suffix}" | tr '[:upper:]' '[:lower:]')s.txt"
+
+		if [ ! -d "${_workdir}" ]; then
+			echo "${_workdir} is not a directory."
+			exit 1
+		fi
+
+		FIND=(find "${_workdir}/" -type f -name "*${_suffix}.java")
+		if [ -n "${_exclude}" ]; then
+			"${FIND[@]}" | sed -e 's,//,/,g' | grep -v "${_exclude}" > "${_workfile}"
+		else
+			"${FIND[@]}" | sed -e 's,//,/,g' > "${_workfile}"
+		fi
+		xargs grep 'public class' < "${_workfile}" | \
+			cut -d: -f2 | \
+			sed -e 's,^.*public[	 ][	 ]*class[	 ][	 ]*,,' -e 's,[	 ][	 ]*.*$,,' | \
+			grep -E "${_suffix}"'$' | \
+			sort -u > "${_outputfile}"
+		echo "${_outputfile}"
+	)
+}
+
+split_file() {
+	local _inputfile
+	local _pieces
+
+	local _count
+	local _lines
+	local _outputdir
+	local _prefix
+
+	_inputfile="$1"; shift
+	_pieces="$1"; shift
+
+	(
+		set -eo pipefail
+		_outputdir="$(dirname "${_inputfile}")"
+		_prefix="${_inputfile%.*}"
+
+		_count="$(wc -l < "${_inputfile}")"
+		if [ -z "${_count}" ] || [ "${_count}" -eq 0 ]; then
+			echo "no lines found" >&2
+			echo 0
+			return
+		fi
+		_lines=$(( _count / _pieces ));
+		if [ "${_lines}" -eq 0 ]; then
+			echo "WARNING: ${_count} / ${_pieces} is zero." >&2
+			echo "0"
+		else
+			split -l "${_lines}" "${_inputfile}" "${_prefix}."
+			echo "${_count}"
+		fi
+	)
+}
+
+get_tests() {
+	local _testfile
+	local _job
+
+	local _prefix
+
+	_testfile="$1"; shift
+	_job="$1"; shift
+
+	(
+		set -eo pipefail
+
+		_prefix="${_testfile%.*}"
+
+		if [ ! -e "${_prefix}.${_job}" ]; then
+			echo "WARNING: ${_prefix}.${_job} does not exist. Returning an empty string." >&2
+			echo ""
+			return
+		fi
+
+		paste -sd , - < "${_prefix}.${_job}"
+	)
+}
+
 # usage: fix_ownership $WORKDIR [$file_to_match]
 # If file_to_match is not passed, attempts to use the bamboo uid/gid.
 # If bamboo uid/gid can't be determined, falls back to the 'opennms' user/group.

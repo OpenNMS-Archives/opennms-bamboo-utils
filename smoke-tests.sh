@@ -8,18 +8,36 @@ GITHUB_BUILD_CONTEXT="smoke"
 # shellcheck source=lib.sh disable=SC1091
 . "${MYDIR}/lib.sh"
 
-set +eo pipefail
-
+NUM_JOBS="$1"; shift
+JOB_INDEX="$1"; shift
 FLAPPING=false
 
-while getopts f OPT; do
+while getopts fhj:i: OPT; do
 	case $OPT in
 		f) FLAPPING=true
+			;;
+		h) HELP=true
+			;;
+		j) NUM_JOBS="$OPT"
+			;;
+		i) JOB_INDEX="$OPT"
 			;;
 		*)
 			;;
 	esac
 done
+
+if [ "$HELP" = "true" ]; then
+	# shellcheck disable=SC2016
+	printf 'usage: $0 [options] <workdir>\n'
+	printf '\n'
+	printf '	-h	this help\n'
+	printf '	-f	run flapping tests\n'
+	printf '	-j <N>	split into N jobs\n'
+	printf '	-i <I>	run job index I (aa, ab, etc.)\n'
+	printf '\n'
+	exit 0
+fi
 
 if [ "$FLAPPING" = "true" ]; then
 	FLAPPING_TESTS="$(git grep runFlappers | grep -c IfProfileValue)"
@@ -40,7 +58,26 @@ export OPENNMS_SOURCEDIR="${WORKDIR}/opennms-source"
 if [ -x "${WORKDIR}/opennms-source/bin/javahome.pl" ]; then
 	JAVA_HOME="$("${OPENNMS_SOURCEDIR}/bin/javahome.pl")"
 fi
-export JAVA_HOME
+
+if [ -z "$JOB_INDEX" ]; then
+	echo "WARNING: num-jobs or job-index not specified.  Building everything."
+	echo ""
+	NUM_JOBS=1
+	JOB_INDEX=aa
+fi
+
+if [ ! -x "${WORKDIR}/opennms-source/compile.pl" ]; then
+	echo "\$WORKDIR should be set to the bamboo root. It is expected this directory contains rpms and opennms-source."
+	exit 1
+fi
+
+set +eo pipefail
+
+JAVA_HOME="$(opennms-source/bin/javahome.pl)"
+PATH="/usr/local/firefox-45:/opt/firefox:/usr/local/bin:$PATH"
+PHANTOMJS_CDNURL="https://mirror.internal.opennms.com/phantomjs/"
+
+export JAVA_HOME PATH PHANTOMJS_CDNURL
 
 CORE_RPM="$(find "${WORKDIR}/rpms" -name opennms-core-\*.rpm -o -name meridian-core-\*.rpm)"
 if [ "$(echo "$CORE_RPM" | wc -w)" -ne 1 ]; then
@@ -51,6 +88,41 @@ fi
 RPM_VERSION="$(rpm -q --queryformat='%{version}-%{release}\n' -p "${CORE_RPM}")"
 echo "RPM Version: $RPM_VERSION"
 ls -1 "${WORKDIR}"/rpms/*
+
+set -eo pipefail
+
+cd "${WORKDIR}" || exit 1
+export SPLIT_TMPDIR="${WORKDIR}/tmp-split"
+mkdir -p "${SPLIT_TMPDIR}"
+
+TEST_FILE="$(get_classes "${OPENNMS_SOURCEDIR}/smoke-test" "${SPLIT_TMPDIR}" "Test")"
+TEST_LINES="$(split_file "${TEST_FILE}" "${NUM_JOBS}")"
+
+IT_FILE="$(get_classes "${OPENNMS_SOURCEDIR}/smoke-test" "${SPLIT_TMPDIR}" "IT")"
+IT_LINES="$(split_file "${IT_FILE}" "${NUM_JOBS}")"
+
+if [ "${TEST_LINES}" -eq 0 ] && [ "${IT_LINES}" -eq 0 ]; then
+	echo "No jobs found."
+	ls -1 "${SPLIT_TMPDIR}"/tests.* || :
+	wc -l "${SPLIT_TMPDIR}"/tests.* || :
+	ls -1 "${SPLIT_TMPDIR}"/its.* || :
+	wc -l "${SPLIT_TMPDIR}"/its.* || :
+	exit 1
+fi
+
+TESTS="$(get_tests "${TEST_FILE}" "${JOB_INDEX}")"
+ITS="$(get_tests "${IT_FILE}" "${JOB_INDEX}")"
+
+echo "Running tests: ${TESTS}"
+echo "Running ITs: ${ITS}"
+
+if [ -n "${TESTS}" ]; then
+	TESTS="-Dtest=${TESTS}"
+fi
+
+if [ -n "${ITS}" ]; then
+	ITS="-Dit.test=${ITS}"
+fi
 
 SMOKE_TEST_API_VERSION="$(grep -C1 org.opennms.smoke.test-api "${OPENNMS_SOURCEDIR}/smoke-test/pom.xml"  | grep '<version>' | sed -e 's,.*<version>,,' -e 's,</version>,,' -e 's,-SNAPSHOT$,,')"
 
@@ -103,9 +175,12 @@ case "$SMOKE_TEST_API_VERSION" in
 		update_github_status "${OPENNMS_SOURCEDIR}" "pending" "$GITHUB_BUILD_CONTEXT" "compiling v2 smoke tests"
 		"${DO_COMPILE[@]}" || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "failed to compile v2 smoke tests"
 		pushd smoke-test || exit 1
+			# shellcheck disable=SC2086
 			"${DO_SMOKE[@]}" \
 				"-Dtest.fork.count=1" \
 				"-Duser.timezone=UTC" \
+				$TESTS \
+				$ITS \
 				install \
 				verify || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
 		popd || exit 1
@@ -148,12 +223,18 @@ case "$SMOKE_TEST_API_VERSION" in
 					--listen-tcp \
 					"${DO_SMOKE[@]}" \
 					-Dtest.fork.count=1 \
+					$TESTS \
+					$ITS \
 					install \
 					verify || update_github_status "${OPENNMS_SOURCEDIR}" "failure" "$GITHUB_BUILD_CONTEXT" "v2 smoke tests failed"
 			cd ..
 		cd ..
 		;;
 	*)
+		if [ "${JOB_INDEX}" != "aa" ]; then
+			echo "Smoke tests for old branches will only run on the first job index."
+			exit 0
+		fi
 		cd "${WORKDIR}/smoke" || exit 1
 			# this branch has the old-style smoke tests
 			echo "* Did NOT find Dockerized smoke tests"
