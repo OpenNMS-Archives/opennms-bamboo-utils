@@ -187,6 +187,7 @@ reset_docker() {
 END
 		# garbage-collect old docker containers and images
 		(docker run -v /tmp/docker-gc-exclude.txt:/tmp/docker-gc-exclude.txt -v /var/run/docker.sock:/var/run/docker.sock spotify/docker-gc env MINIMUM_IMAGES_TO_SAVE=1 EXCLUDE_FROM_GC=/tmp/docker-gc-exclude.txt /docker-gc) 2>/dev/null || :
+		docker system prune --volumes --force 2>/dev/null || :
 	else
 		docker system prune --all --volumes --force 2>/dev/null || :
 	fi
